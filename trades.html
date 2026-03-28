@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Trade Journal — Recovery Tracker</title>
+<style>
+:root{--bg:#0a0e1a;--card:#1a2235;--border:#2a3550;--input:#0f1629;--green:#00c805;--gd:rgba(0,200,5,0.1);--red:#ff5000;--rd:rgba(255,80,0,0.1);--gold:#fec925;--yd:rgba(254,201,37,0.12);--blue:#3b82f6;--bd:rgba(59,130,246,0.1);--purple:#a855f7;--text:#e2e8f0;--sub:#94a3b8;--muted:#64748b;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.mx{max-width:1000px;margin:0 auto;padding:16px;}
+h1{font-size:22px;font-weight:700;text-align:center;margin-bottom:4px;} h1 span{color:var(--gold);}
+.subtitle{text-align:center;font-size:11px;color:var(--muted);margin-bottom:20px;}
+.grid{display:grid;gap:10px;margin-bottom:16px;}
+.g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:repeat(3,1fr);} .g4{grid-template-columns:repeat(4,1fr);} .g5{grid-template-columns:repeat(5,1fr);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.card.c{text-align:center;}
+.lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.7px;color:var(--muted);font-weight:600;margin-bottom:4px;}
+.val{font-size:20px;font-weight:700;}
+.sm{font-size:10px;color:var(--sub);margin-top:2px;}
+.pos{color:var(--green);} .neg{color:var(--red);} .gld{color:var(--gold);}
+.sec{margin-bottom:20px;}
+.sec-t{font-size:13px;font-weight:700;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+.bg{background:var(--gd);color:var(--green);} .br{background:var(--rd);color:var(--red);} .by{background:var(--yd);color:var(--gold);} .bb{background:var(--bd);color:var(--blue);}
+
+/* Form */
+.form-card{background:var(--card);border:1px solid var(--gold);border-radius:12px;padding:16px;margin-bottom:16px;}
+.form-title{font-size:14px;font-weight:700;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.form-field{display:flex;flex-direction:column;gap:3px;}
+.form-field label{font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600;}
+.form-field input,.form-field select{background:var(--input);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;outline:none;font-family:inherit;}
+.form-field input:focus,.form-field select:focus{border-color:var(--gold);}
+.form-field select option{background:var(--card);}
+.form-field input::placeholder{color:var(--muted);}
+.btn{padding:8px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:opacity 0.2s;}
+.btn:hover{opacity:0.85;}
+.btn-gold{background:var(--gold);color:#000;}
+.btn-red{background:var(--red);color:#fff;font-size:10px;padding:4px 10px;border-radius:6px;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--sub);font-size:10px;padding:4px 10px;border-radius:6px;}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+
+/* Progress bar */
+.recovery-bar{margin-bottom:16px;}
+.rb-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.rb-header .title{font-size:13px;font-weight:700;}
+.rb-header .amt{font-size:18px;font-weight:800;}
+.rb-track{height:24px;background:var(--input);border-radius:12px;overflow:hidden;border:1px solid var(--border);position:relative;}
+.rb-fill{height:100%;border-radius:12px;transition:width 0.5s;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:10px;font-weight:700;color:#000;min-width:40px;}
+.rb-milestone{position:absolute;top:0;height:100%;width:2px;background:var(--gold);}
+.rb-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px;}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:11px;}
+th{text-align:left;padding:6px 10px;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);}
+td{padding:7px 10px;border-bottom:1px solid rgba(42,53,80,0.25);}
+tr:hover td{background:rgba(255,255,255,0.01);}
+.tk{font-weight:700;} .sh{color:var(--sub);}
+
+/* Calendar heatmap */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;position:relative;cursor:default;}
+.cal-cell.header{color:var(--muted);font-size:8px;aspect-ratio:auto;padding:2px;}
+.cal-cell .tip{display:none;position:absolute;bottom:110%;background:var(--card);border:1px solid var(--border);padding:4px 8px;border-radius:4px;font-size:9px;white-space:nowrap;z-index:10;color:var(--text);}
+.cal-cell:hover .tip{display:block;}
+
+/* Streak */
+.streak-bar{display:flex;gap:3px;margin-top:6px;}
+.streak-dot{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;}
+
+/* Rules checklist */
+.rule{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(42,53,80,0.2);font-size:11px;}
+.rule:last-child{border-bottom:none;}
+.rule-check{width:18px;height:18px;border-radius:4px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;flex-shrink:0;}
+.rule-check.checked{background:var(--gd);border-color:var(--green);color:var(--green);}
+.rule-text{color:var(--sub);}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:10px;}
+.tab{padding:5px 14px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;font-family:inherit;}
+.tab:hover{border-color:var(--gold);color:var(--gold);}
+.tab.active{background:var(--yd);border-color:var(--gold);color:var(--gold);}
+.pane{display:none;} .pane.active{display:block;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* Quote */
+.quote{background:var(--card);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;font-size:11px;color:var(--sub);font-style:italic;}
+.quote b{color:var(--gold);font-style:normal;}
+</style>
+</head>
+<body>
+<div class="mx">
+
+<h1>Trade <span>Journal</span></h1>
+<p class="subtitle">Daily tracker — Recovery goal: $8,310 from options losses</p>
+
+<!-- Daily Quote/Reminder -->
+<div class="quote" id="dailyQuote"></div>
+
+<!-- ══ RECOVERY PROGRESS ══ -->
+<div class="recovery-bar">
+  <div class="rb-header">
+    <span class="title">Options Loss Recovery</span>
+    <span class="amt" id="recoveredAmt">$0 / $8,310</span>
+  </div>
+  <div class="rb-track">
+    <div class="rb-fill" id="recoveryFill" style="width:0%;background:linear-gradient(90deg,var(--green),var(--gold));">0%</div>
+  </div>
+  <div class="rb-labels">
+    <span>$0</span>
+    <span id="projDate">Target: ~Aug 2026</span>
+    <span>$8,310</span>
+  </div>
+</div>
+
+<!-- ══ TOP STATS ══ -->
+<div class="grid g5" id="topStats">
+  <div class="card c"><div class="lbl">Today</div><div class="val" id="todayPnl">—</div><div class="sm" id="todayTrades">No trades yet</div></div>
+  <div class="card c"><div class="lbl">This Week</div><div class="val" id="weekPnl">$0</div><div class="sm" id="weekTrades">0 trades</div></div>
+  <div class="card c"><div class="lbl">This Month</div><div class="val" id="monthPnl">$0</div><div class="sm" id="monthTrades">0 trades</div></div>
+  <div class="card c"><div class="lbl">Total P&L</div><div class="val" id="totalPnl">$0</div><div class="sm" id="totalTrades">0 trades</div></div>
+  <div class="card c"><div class="lbl">Win Rate</div><div class="val gld" id="winRate">—</div><div class="sm" id="winLoss">0W / 0L</div></div>
+</div>
+
+<!-- ══ KEY METRICS ══ -->
+<div class="grid g4">
+  <div class="card c"><div class="lbl">Avg Win</div><div class="val pos" id="avgWin" style="font-size:16px;">—</div></div>
+  <div class="card c"><div class="lbl">Avg Loss</div><div class="val neg" id="avgLoss" style="font-size:16px;">—</div></div>
+  <div class="card c"><div class="lbl">Best Trade</div><div class="val pos" id="bestTrade" style="font-size:16px;">—</div></div>
+  <div class="card c"><div class="lbl">Worst Trade</div><div class="val neg" id="worstTrade" style="font-size:16px;">—</div></div>
+</div>
+
+<!-- ══ STREAK + RULES ══ -->
+<div class="grid g2">
+  <div class="card">
+    <div class="lbl">Current Streak</div>
+    <div id="streakDisplay" style="margin-top:6px;">
+      <span class="val" id="streakVal" style="font-size:24px;">0</span>
+      <span class="sm" id="streakLabel">No trades yet</span>
+    </div>
+    <div class="streak-bar" id="streakBar"></div>
+    <div class="sm" style="margin-top:6px;">Last 20 trades</div>
+  </div>
+  <div class="card">
+    <div class="lbl">Pre-Trade Checklist</div>
+    <div id="checklist">
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">Is it before 11am?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">RSI + MACD + Trend all agree?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">Volume above average?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">Stop loss order set at $400?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">Only $500 risked?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">This is my ONLY trade today?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">I am NOT emotional/revenge trading?</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD TRADE FORM ══ -->
+<div class="form-card">
+  <div class="form-title">
+    <span>Log Trade</span>
+    <span style="font-size:10px;color:var(--muted);font-weight:400;" id="ruleWarning"></span>
+  </div>
+  <div class="form-row">
+    <div class="form-field" style="flex:1;">
+      <label>Date</label>
+      <input type="date" id="tradeDate" />
+    </div>
+    <div class="form-field" style="flex:1;">
+      <label>Ticker</label>
+      <input type="text" id="tradeTicker" placeholder="NVDA, SPY..." style="text-transform:uppercase;" />
+    </div>
+    <div class="form-field" style="flex:1;">
+      <label>Type</label>
+      <select id="tradeType">
+        <option value="call">Call</option>
+        <option value="put">Put</option>
+        <option value="stock">Stock</option>
+      </select>
+    </div>
+    <div class="form-field" style="flex:0.8;">
+      <label>Entry $</label>
+      <input type="number" id="tradeEntry" placeholder="500" step="0.01" />
+    </div>
+    <div class="form-field" style="flex:0.8;">
+      <label>Exit $</label>
+      <input type="number" id="tradeExit" placeholder="650" step="0.01" />
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-field" style="flex:2;">
+      <label>Notes (optional)</label>
+      <input type="text" id="tradeNotes" placeholder="Setup, reason, what I learned..." />
+    </div>
+    <div class="form-field" style="justify-content:flex-end;">
+      <button class="btn btn-gold" onclick="addTrade()">Add Trade</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TABS ══ -->
+<div class="tabs">
+  <button class="tab active" onclick="showTab('history',this)">Trade History</button>
+  <button class="tab" onclick="showTab('calendar',this)">Calendar</button>
+  <button class="tab" onclick="showTab('weekly',this)">Weekly Summary</button>
+  <button class="tab" onclick="showTab('insights',this)">Insights</button>
+</div>
+
+<!-- TRADE HISTORY -->
+<div class="pane active" id="history">
+  <div class="card" style="padding:0;max-height:500px;overflow-y:auto;">
+    <table>
+      <thead><tr><th>Date</th><th>Ticker</th><th>Type</th><th>Entry</th><th>Exit</th><th>P&L</th><th>%</th><th>Notes</th><th></th></tr></thead>
+      <tbody id="tradeBody">
+        <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px;">No trades logged yet. Add your first trade above.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div class="pane" id="calendar">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <button class="btn-outline" onclick="changeMonth(-1)">&larr;</button>
+      <span id="calMonth" style="font-weight:700;font-size:14px;"></span>
+      <button class="btn-outline" onclick="changeMonth(1)">&rarr;</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="sm" style="margin-top:8px;display:flex;gap:12px;justify-content:center;">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--green);vertical-align:middle;"></span> Profit</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--red);vertical-align:middle;"></span> Loss</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--muted);vertical-align:middle;"></span> No trade</span>
+    </div>
+  </div>
+</div>
+
+<!-- WEEKLY SUMMARY -->
+<div class="pane" id="weekly">
+  <div id="weeklySummary"></div>
+</div>
+
+<!-- INSIGHTS -->
+<div class="pane" id="insights">
+  <div id="insightsContent"></div>
+</div>
+
+<!-- ══ PORTFOLIO TRACKER ══ -->
+<div class="sec" style="margin-top:20px;">
+  <div class="sec-t">Portfolio Snapshot</div>
+  <div class="grid g3">
+    <div class="card c">
+      <div class="lbl">Deposited</div>
+      <div class="val pos" style="font-size:18px;">$27,224</div>
+    </div>
+    <div class="card c">
+      <div class="lbl">Account + Trading Gains</div>
+      <div class="val" style="font-size:18px;" id="portfolioVal">$22,058</div>
+      <div class="sm" id="portfolioSub">Before trading gains</div>
+    </div>
+    <div class="card c">
+      <div class="lbl">Projected Aug 2026</div>
+      <div class="val gld" style="font-size:18px;" id="projVal">$33,058</div>
+      <div class="sm">At $125/day avg</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- mx -->
+
+<script>
+// ═══════════════════════════════════════
+// STATE (persisted to localStorage)
+// ═══════════════════════════════════════
+const STORAGE_KEY = 'rh_trade_journal';
+const RECOVERY_TARGET = 8310;
+const ACCOUNT_BASE = 22058;
+const DEPOSITED = 27224;
+
+function loadTrades() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function saveTrades(trades) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
+}
+
+let trades = loadTrades();
+let calendarMonth = new Date().getMonth();
+let calendarYear = new Date().getFullYear();
+
+// Set default date to today
+document.getElementById('tradeDate').valueAsDate = new Date();
+
+// ═══════════════════════════════════════
+// ADD / DELETE TRADE
+// ═══════════════════════════════════════
+function addTrade() {
+  const date = document.getElementById('tradeDate').value;
+  const ticker = document.getElementById('tradeTicker').value.trim().toUpperCase();
+  const type = document.getElementById('tradeType').value;
+  const entry = parseFloat(document.getElementById('tradeEntry').value);
+  const exit = parseFloat(document.getElementById('tradeExit').value);
+  const notes = document.getElementById('tradeNotes').value.trim();
+
+  if (!date || !ticker || isNaN(entry) || isNaN(exit)) {
+    alert('Fill in date, ticker, entry and exit.');
+    return;
+  }
+
+  const pnl = exit - entry;
+  const pct = ((exit - entry) / entry * 100);
+
+  trades.push({ id: Date.now(), date, ticker, type, entry, exit, pnl: Math.round(pnl * 100) / 100, pct: Math.round(pct * 100) / 100, notes });
+  trades.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+  saveTrades(trades);
+
+  // Clear form
+  document.getElementById('tradeTicker').value = '';
+  document.getElementById('tradeEntry').value = '';
+  document.getElementById('tradeExit').value = '';
+  document.getElementById('tradeNotes').value = '';
+  document.querySelectorAll('.rule-check').forEach(c => c.classList.remove('checked'));
+
+  render();
+}
+
+function deleteTrade(id) {
+  if (!confirm('Delete this trade?')) return;
+  trades = trades.filter(t => t.id !== id);
+  saveTrades(trades);
+  render();
+}
+
+// ═══════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════
+function render() {
+  renderStats();
+  renderTradeTable();
+  renderStreak();
+  renderCalendar();
+  renderWeekly();
+  renderInsights();
+  renderRecovery();
+  renderQuote();
+  renderPortfolio();
+}
+
+// ── Stats ──
+function renderStats() {
+  const today = new Date().toISOString().slice(0, 10);
+  const weekStart = getWeekStart(new Date());
+  const monthStr = today.slice(0, 7);
+
+  const todayTrades = trades.filter(t => t.date === today);
+  const weekTrades = trades.filter(t => t.date >= weekStart);
+  const monthTrades = trades.filter(t => t.date.startsWith(monthStr));
+
+  const todayPnl = sum(todayTrades);
+  const weekPnl = sum(weekTrades);
+  const monthPnl = sum(monthTrades);
+  const totalPnl = sum(trades);
+
+  const wins = trades.filter(t => t.pnl > 0);
+  const losses = trades.filter(t => t.pnl < 0);
+  const wr = trades.length > 0 ? (wins.length / trades.length * 100).toFixed(0) : '—';
+
+  setEl('todayPnl', fmtPnl(todayPnl), todayPnl >= 0 ? 'val pos' : 'val neg');
+  setEl('todayTrades', todayTrades.length > 0 ? `${todayTrades.length} trade(s)` : 'No trades yet');
+  setEl('weekPnl', fmtPnl(weekPnl), weekPnl >= 0 ? 'val pos' : 'val neg');
+  setEl('weekTrades', `${weekTrades.length} trades`);
+  setEl('monthPnl', fmtPnl(monthPnl), monthPnl >= 0 ? 'val pos' : 'val neg');
+  setEl('monthTrades', `${monthTrades.length} trades`);
+  setEl('totalPnl', fmtPnl(totalPnl), totalPnl >= 0 ? 'val pos' : 'val neg');
+  setEl('totalTrades', `${trades.length} trades`);
+  setEl('winRate', trades.length > 0 ? wr + '%' : '—');
+  setEl('winLoss', `${wins.length}W / ${losses.length}L`);
+
+  const avgW = wins.length > 0 ? sum(wins) / wins.length : 0;
+  const avgL = losses.length > 0 ? sum(losses) / losses.length : 0;
+  const best = trades.length > 0 ? Math.max(...trades.map(t => t.pnl)) : 0;
+  const worst = trades.length > 0 ? Math.min(...trades.map(t => t.pnl)) : 0;
+
+  setEl('avgWin', wins.length > 0 ? fmtPnl(avgW) : '—');
+  setEl('avgLoss', losses.length > 0 ? fmtPnl(avgL) : '—');
+  setEl('bestTrade', best > 0 ? fmtPnl(best) : '—');
+  setEl('worstTrade', worst < 0 ? fmtPnl(worst) : '—');
+}
+
+// ── Recovery Bar ──
+function renderRecovery() {
+  const totalPnl = sum(trades);
+  const recovered = Math.max(0, totalPnl);
+  const pct = Math.min(100, (recovered / RECOVERY_TARGET * 100));
+
+  document.getElementById('recoveredAmt').textContent = `${fmtPnl(recovered)} / $${RECOVERY_TARGET.toLocaleString()}`;
+  document.getElementById('recoveredAmt').className = 'amt ' + (recovered >= RECOVERY_TARGET ? 'pos' : 'gld');
+
+  const fill = document.getElementById('recoveryFill');
+  fill.style.width = Math.max(pct, 2) + '%';
+  fill.textContent = pct.toFixed(1) + '%';
+
+  if (pct >= 100) {
+    fill.style.background = 'var(--green)';
+    fill.textContent = 'RECOVERED!';
+  }
+
+  // Project date
+  if (trades.length >= 3) {
+    const avgDaily = totalPnl / trades.length;
+    if (avgDaily > 0) {
+      const daysLeft = Math.ceil((RECOVERY_TARGET - recovered) / avgDaily);
+      const target = new Date();
+      target.setDate(target.getDate() + Math.ceil(daysLeft * 7 / 4)); // 4 trading days/week
+      document.getElementById('projDate').textContent = `Projected: ${target.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+    }
+  }
+}
+
+// ── Trade Table ──
+function renderTradeTable() {
+  const body = document.getElementById('tradeBody');
+  if (trades.length === 0) {
+    body.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:30px;">No trades logged yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = trades.map(t => `
+    <tr>
+      <td class="sh">${formatDate(t.date)}</td>
+      <td class="tk">${t.ticker}</td>
+      <td><span class="badge ${t.type === 'call' ? 'bg' : t.type === 'put' ? 'br' : 'bb'}">${t.type}</span></td>
+      <td>$${t.entry.toFixed(0)}</td>
+      <td>$${t.exit.toFixed(0)}</td>
+      <td class="${t.pnl >= 0 ? 'pos' : 'neg'}" style="font-weight:700;">${fmtPnl(t.pnl)}</td>
+      <td class="${t.pct >= 0 ? 'pos' : 'neg'}">${t.pct >= 0 ? '+' : ''}${t.pct.toFixed(1)}%</td>
+      <td class="sh" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.notes||''}">${t.notes || ''}</td>
+      <td><button class="btn-red" onclick="deleteTrade(${t.id})">x</button></td>
+    </tr>
+  `).join('');
+}
+
+// ── Streak ──
+function renderStreak() {
+  const last20 = trades.slice(0, 20);
+  const bar = document.getElementById('streakBar');
+  bar.innerHTML = last20.map(t =>
+    `<div class="streak-dot" style="background:${t.pnl > 0 ? 'var(--gd)' : t.pnl < 0 ? 'var(--rd)' : 'var(--border)'}; color:${t.pnl > 0 ? 'var(--green)' : 'var(--red)'};">${t.pnl > 0 ? 'W' : 'L'}</div>`
+  ).join('');
+
+  // Current streak
+  let streak = 0;
+  let dir = null;
+  for (const t of trades) {
+    const w = t.pnl > 0;
+    if (dir === null) { dir = w; streak = 1; }
+    else if (w === dir) streak++;
+    else break;
+  }
+
+  const streakEl = document.getElementById('streakVal');
+  const labelEl = document.getElementById('streakLabel');
+  if (trades.length === 0) { streakEl.textContent = '0'; labelEl.textContent = 'No trades'; return; }
+  streakEl.textContent = streak;
+  streakEl.className = 'val ' + (dir ? 'pos' : 'neg');
+  labelEl.textContent = dir ? `${streak} win streak` : `${streak} loss streak`;
+}
+
+// ── Calendar ──
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonth').textContent = `${monthNames[calendarMonth]} ${calendarYear}`;
+
+  const daysByDate = {};
+  trades.forEach(t => {
+    if (!daysByDate[t.date]) daysByDate[t.date] = 0;
+    daysByDate[t.date] += t.pnl;
+  });
+
+  const first = new Date(calendarYear, calendarMonth, 1);
+  const lastDay = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const startDow = first.getDay();
+
+  let html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-cell header">${d}</div>`).join('');
+  for (let i = 0; i < startDow; i++) html += '<div class="cal-cell"></div>';
+
+  for (let d = 1; d <= lastDay; d++) {
+    const ds = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const pnl = daysByDate[ds];
+    let bg = 'rgba(42,53,80,0.3)';
+    let color = 'var(--muted)';
+    if (pnl !== undefined) {
+      if (pnl > 0) { bg = 'var(--gd)'; color = 'var(--green)'; }
+      else if (pnl < 0) { bg = 'var(--rd)'; color = 'var(--red)'; }
+      else { bg = 'var(--yd)'; color = 'var(--gold)'; }
+    }
+    const tip = pnl !== undefined ? `<span class="tip">${ds}: ${fmtPnl(pnl)}</span>` : '';
+    html += `<div class="cal-cell" style="background:${bg};color:${color};">${d}${tip}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function changeMonth(delta) {
+  calendarMonth += delta;
+  if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+  if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+  renderCalendar();
+}
+
+// ── Weekly Summary ──
+function renderWeekly() {
+  const weeks = {};
+  trades.forEach(t => {
+    const ws = getWeekStart(new Date(t.date + 'T12:00:00'));
+    if (!weeks[ws]) weeks[ws] = { trades: [], pnl: 0, wins: 0, losses: 0 };
+    weeks[ws].trades.push(t);
+    weeks[ws].pnl += t.pnl;
+    if (t.pnl > 0) weeks[ws].wins++;
+    else if (t.pnl < 0) weeks[ws].losses++;
+  });
+
+  const sorted = Object.entries(weeks).sort((a, b) => b[0].localeCompare(a[0]));
+  const container = document.getElementById('weeklySummary');
+
+  if (sorted.length === 0) {
+    container.innerHTML = '<div class="card c" style="color:var(--muted);padding:30px;">Weekly summaries appear after you log trades.</div>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(([ws, w]) => {
+    const wr = w.trades.length > 0 ? (w.wins / w.trades.length * 100).toFixed(0) : 0;
+    const target = 500; // $125/day × 4 days
+    const onTrack = w.pnl >= target;
+    return `<div class="card" style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-weight:700;">Week of ${formatDate(ws)}</span>
+          <span class="sm" style="margin-left:8px;">${w.trades.length} trades · ${w.wins}W/${w.losses}L · ${wr}% win rate</span>
+        </div>
+        <div>
+          <span class="${w.pnl >= 0 ? 'pos' : 'neg'}" style="font-size:18px;font-weight:700;">${fmtPnl(w.pnl)}</span>
+          ${onTrack ? '<span class="badge bg" style="margin-left:6px;">On Track</span>' : w.pnl >= 0 ? '<span class="badge by" style="margin-left:6px;">Below Target</span>' : '<span class="badge br" style="margin-left:6px;">Red Week</span>'}
+        </div>
+      </div>
+      <div style="margin-top:6px;height:4px;background:var(--input);border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:${Math.min(100, Math.max(0, w.pnl / target * 100))}%;background:${w.pnl >= target ? 'var(--green)' : w.pnl > 0 ? 'var(--gold)' : 'var(--red)'};border-radius:2px;"></div>
+      </div>
+      <div class="sm" style="margin-top:3px;">Target: $500/week · ${onTrack ? 'Hit!' : `Need $${Math.max(0, target - w.pnl).toFixed(0)} more`}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Insights ──
+function renderInsights() {
+  const container = document.getElementById('insightsContent');
+  if (trades.length < 3) {
+    container.innerHTML = '<div class="card c" style="color:var(--muted);padding:30px;">Log at least 3 trades to see insights.</div>';
+    return;
+  }
+
+  const wins = trades.filter(t => t.pnl > 0);
+  const losses = trades.filter(t => t.pnl < 0);
+  const winRate = (wins.length / trades.length * 100).toFixed(1);
+  const avgWin = wins.length > 0 ? sum(wins) / wins.length : 0;
+  const avgLoss = losses.length > 0 ? Math.abs(sum(losses) / losses.length) : 0;
+  const rrRatio = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '∞';
+  const expectancy = trades.length > 0 ? sum(trades) / trades.length : 0;
+  const profitFactor = Math.abs(sum(losses)) > 0 ? (sum(wins) / Math.abs(sum(losses))).toFixed(2) : '∞';
+
+  // By ticker
+  const byTicker = {};
+  trades.forEach(t => {
+    if (!byTicker[t.ticker]) byTicker[t.ticker] = { pnl: 0, count: 0, wins: 0 };
+    byTicker[t.ticker].pnl += t.pnl;
+    byTicker[t.ticker].count++;
+    if (t.pnl > 0) byTicker[t.ticker].wins++;
+  });
+  const tickerSorted = Object.entries(byTicker).sort((a, b) => b[1].pnl - a[1].pnl);
+
+  // By type
+  const callTrades = trades.filter(t => t.type === 'call');
+  const putTrades = trades.filter(t => t.type === 'put');
+
+  // By day of week
+  const byDow = [0,0,0,0,0,0,0];
+  const byDowCount = [0,0,0,0,0,0,0];
+  trades.forEach(t => {
+    const dow = new Date(t.date + 'T12:00:00').getDay();
+    byDow[dow] += t.pnl;
+    byDowCount[dow]++;
+  });
+
+  let html = '';
+
+  // Key metrics
+  html += `<div class="grid g4" style="margin-bottom:12px;">
+    <div class="card c"><div class="lbl">Expectancy</div><div class="val ${expectancy>=0?'pos':'neg'}" style="font-size:16px;">${fmtPnl(expectancy)}</div><div class="sm">per trade</div></div>
+    <div class="card c"><div class="lbl">Risk:Reward</div><div class="val ${parseFloat(rrRatio)>=1?'pos':'neg'}" style="font-size:16px;">1:${rrRatio}</div><div class="sm">${parseFloat(rrRatio)>=1?'In your favor':'Against you'}</div></div>
+    <div class="card c"><div class="lbl">Profit Factor</div><div class="val ${parseFloat(profitFactor)>=1?'pos':'neg'}" style="font-size:16px;">${profitFactor}</div><div class="sm">${parseFloat(profitFactor)>=1.5?'Strong':'Needs work'}</div></div>
+    <div class="card c"><div class="lbl">Breakeven Rate</div><div class="val gld" style="font-size:16px;">${avgWin > 0 ? (avgLoss/(avgWin+avgLoss)*100).toFixed(0) : '—'}%</div><div class="sm">Min win rate needed</div></div>
+  </div>`;
+
+  // Best/worst tickers
+  html += `<div class="grid g2" style="margin-bottom:12px;">
+    <div class="card"><div class="lbl">Best Tickers</div>`;
+  tickerSorted.filter(([,v]) => v.pnl > 0).slice(0, 5).forEach(([t, v]) => {
+    html += `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;"><span class="tk">${t}</span><span>${v.count} trades · ${(v.wins/v.count*100).toFixed(0)}% WR</span><span class="pos" style="font-weight:700;">${fmtPnl(v.pnl)}</span></div>`;
+  });
+  html += `</div><div class="card"><div class="lbl">Worst Tickers</div>`;
+  tickerSorted.filter(([,v]) => v.pnl < 0).reverse().slice(0, 5).forEach(([t, v]) => {
+    html += `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;"><span class="tk">${t}</span><span>${v.count} trades · ${(v.wins/v.count*100).toFixed(0)}% WR</span><span class="neg" style="font-weight:700;">${fmtPnl(v.pnl)}</span></div>`;
+  });
+  html += `</div></div>`;
+
+  // Calls vs Puts
+  html += `<div class="grid g2" style="margin-bottom:12px;">
+    <div class="card c"><div class="lbl">Calls P&L</div><div class="val ${sum(callTrades)>=0?'pos':'neg'}" style="font-size:16px;">${fmtPnl(sum(callTrades))}</div><div class="sm">${callTrades.length} trades · ${callTrades.filter(t=>t.pnl>0).length}W</div></div>
+    <div class="card c"><div class="lbl">Puts P&L</div><div class="val ${sum(putTrades)>=0?'pos':'neg'}" style="font-size:16px;">${fmtPnl(sum(putTrades))}</div><div class="sm">${putTrades.length} trades · ${putTrades.filter(t=>t.pnl>0).length}W</div></div>
+  </div>`;
+
+  // P&L by day of week
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  html += `<div class="card" style="margin-bottom:12px;"><div class="lbl">P&L by Day of Week</div>`;
+  const maxDow = Math.max(...byDow.map(Math.abs), 1);
+  [1,2,3,4,5].forEach(d => {
+    if (byDowCount[d] === 0) return;
+    const pct = Math.abs(byDow[d]) / maxDow * 100;
+    html += `<div style="display:flex;align-items:center;gap:8px;padding:3px 0;font-size:11px;">
+      <span style="width:30px;color:var(--muted);">${dayNames[d]}</span>
+      <div style="flex:1;height:12px;background:var(--input);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:${byDow[d]>=0?'var(--green)':'var(--red)'};border-radius:3px;"></div>
+      </div>
+      <span class="${byDow[d]>=0?'pos':'neg'}" style="width:60px;text-align:right;font-weight:600;">${fmtPnl(byDow[d])}</span>
+      <span style="width:30px;color:var(--muted);text-align:right;">${byDowCount[d]}t</span>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Warnings
+  html += `<div class="card" style="border-color:var(--gold);"><div class="lbl" style="color:var(--gold);">Alerts</div>`;
+  if (parseFloat(rrRatio) < 1) html += `<div style="font-size:11px;color:var(--red);padding:3px 0;">Your avg loss ($${avgLoss.toFixed(0)}) is bigger than avg win ($${avgWin.toFixed(0)}). Tighten stops.</div>`;
+  if (parseFloat(winRate) < 40) html += `<div style="font-size:11px;color:var(--red);padding:3px 0;">Win rate ${winRate}% is below 40%. Be more selective with entries.</div>`;
+  if (parseFloat(profitFactor) < 1) html += `<div style="font-size:11px;color:var(--red);padding:3px 0;">Profit factor ${profitFactor} — you're losing more than winning overall.</div>`;
+  const todayCount = trades.filter(t => t.date === new Date().toISOString().slice(0, 10)).length;
+  if (todayCount > 1) html += `<div style="font-size:11px;color:var(--red);padding:3px 0;">You took ${todayCount} trades today. Rule: 1 trade/day max.</div>`;
+  if (parseFloat(rrRatio) >= 1.5 && parseFloat(winRate) >= 50) html += `<div style="font-size:11px;color:var(--green);padding:3px 0;">Great R:R ratio and win rate. Keep this up!</div>`;
+  if (expectancy > 100) html += `<div style="font-size:11px;color:var(--green);padding:3px 0;">Expectancy $${expectancy.toFixed(0)}/trade is excellent. Consistency is key.</div>`;
+  html += `</div>`;
+
+  container.innerHTML = html;
+}
+
+// ── Portfolio ──
+function renderPortfolio() {
+  const totalPnl = sum(trades);
+  const val = ACCOUNT_BASE + totalPnl;
+  setEl('portfolioVal', '$' + val.toLocaleString('en-US', { maximumFractionDigits: 0 }), val >= DEPOSITED ? 'val pos' : 'val');
+  document.getElementById('portfolioSub').textContent = totalPnl >= 0 ? `+${fmtPnl(totalPnl)} from trading` : `${fmtPnl(totalPnl)} from trading`;
+
+  // Project to August at current rate
+  if (trades.length >= 3) {
+    const tradingDays = new Set(trades.map(t => t.date)).size;
+    const dailyAvg = totalPnl / tradingDays;
+    const daysToAug = 110; // ~110 trading days to Aug
+    const projected = val + (dailyAvg * daysToAug * 4 / 5); // 4 trading days per week
+    document.getElementById('projVal').textContent = '$' + Math.round(projected).toLocaleString();
+  }
+}
+
+// ── Daily Quote ──
+function renderQuote() {
+  const quotes = [
+    { text: "Your stops save you money. Your old pattern of holding to expiry cost $4,096.", author: "Your Data" },
+    { text: "One trade per day. Win or lose, you're done. No revenge trading.", author: "Rule #2" },
+    { text: "You only need 33% win rate with 1:2 risk-reward to break even.", author: "Math" },
+    { text: "$125/day × 4 days = $500/week = $2,580/month. Consistency beats intensity.", author: "The Plan" },
+    { text: "Your stock picks are 100% win rate, +$6,657. Trust your stock instincts.", author: "Your Data" },
+    { text: "Set the stop loss order THE SECOND you buy. Not mental. Actual order.", author: "Rule #1" },
+    { text: "Trends continue rather than reverse. Don't fight the trend.", author: "Fidelity TA" },
+    { text: "If RSI, MACD, and trend don't all agree — skip the trade. Cash is a position.", author: "Fidelity TA" },
+    { text: "Your exciting trades cost you $7,254. Boring consistency is the path to recovery.", author: "Your Data" },
+    { text: "The best trade is the one you didn't take when the setup wasn't there.", author: "Discipline" },
+  ];
+  const today = new Date();
+  const idx = (today.getFullYear() * 366 + today.getMonth() * 31 + today.getDate()) % quotes.length;
+  const q = quotes[idx];
+  document.getElementById('dailyQuote').innerHTML = `"${q.text}" — <b>${q.author}</b>`;
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function sum(arr) { return arr.reduce((s, t) => s + (t.pnl || 0), 0); }
+function fmtPnl(n) { return (n >= 0 ? '+' : '-') + '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+function setEl(id, text, cls) { const el = document.getElementById(id); el.textContent = text; if (cls) el.className = cls; }
+function formatDate(d) { const [y, m, dd] = d.split('-'); return `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]} ${parseInt(dd)}`; }
+function getWeekStart(d) { const day = d.getDay(); const diff = d.getDate() - day + (day === 0 ? -6 : 1); const ws = new Date(d); ws.setDate(diff); return ws.toISOString().slice(0, 10); }
+
+function showTab(id, btn) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Init
+render();
+
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

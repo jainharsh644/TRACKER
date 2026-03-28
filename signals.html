@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechSignals — Options Technical Analysis Dashboard</title>
+<style>
+:root {
+  --bg:#0a0e1a; --card:#1a2235; --border:#2a3550; --input:#0f1629;
+  --green:#00c805; --green-dim:rgba(0,200,5,0.1);
+  --red:#ff5000; --red-dim:rgba(255,80,0,0.1);
+  --gold:#fec925; --gold-dim:rgba(254,201,37,0.12);
+  --blue:#3b82f6; --blue-dim:rgba(59,130,246,0.1);
+  --purple:#a855f7; --purple-dim:rgba(168,85,247,0.1);
+  --cyan:#06b6d4;
+  --text:#e2e8f0; --sub:#94a3b8; --muted:#64748b;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.header{text-align:center;padding:16px;border-bottom:1px solid var(--border);}
+.header h1{font-size:22px;font-weight:700;} .header h1 span{color:var(--gold);}
+.header p{font-size:11px;color:var(--muted);margin-top:2px;}
+
+.search-bar{display:flex;gap:8px;justify-content:center;padding:14px;background:var(--card);border-bottom:1px solid var(--border);}
+.search-bar input{background:var(--input);border:1px solid var(--border);border-radius:6px;padding:8px 14px;color:var(--text);font-size:14px;width:200px;outline:none;text-transform:uppercase;}
+.search-bar input:focus{border-color:var(--gold);}
+.search-bar input::placeholder{color:var(--muted);text-transform:none;}
+.search-bar button{background:var(--gold);border:none;border-radius:6px;padding:8px 20px;color:#000;font-weight:700;font-size:13px;cursor:pointer;}
+.search-bar button:disabled{opacity:0.4;cursor:not-allowed;}
+.search-bar .quick-picks{display:flex;gap:4px;align-items:center;}
+.qp{padding:4px 10px;border-radius:12px;font-size:10px;border:1px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;}
+.qp:hover{border-color:var(--gold);color:var(--gold);}
+
+.main{max-width:1100px;margin:0 auto;padding:16px;}
+.grid{display:grid;gap:12px;}
+.g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:1fr 1fr 1fr;} .g4{grid-template-columns:repeat(4,1fr);}
+.mb{margin-bottom:16px;}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.card.center{text-align:center;}
+.lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);font-weight:600;margin-bottom:4px;}
+.val{font-size:20px;font-weight:700;}
+.sm{font-size:10px;color:var(--sub);margin-top:2px;}
+
+.section{margin-bottom:20px;}
+.sec-title{font-size:13px;font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+.badge-buy{background:var(--green-dim);color:var(--green);}
+.badge-sell{background:var(--red-dim);color:var(--red);}
+.badge-hold{background:var(--gold-dim);color:var(--gold);}
+.badge-neutral{background:rgba(100,116,139,0.15);color:var(--sub);}
+
+.pnl-pos{color:var(--green);} .pnl-neg{color:var(--red);}
+
+/* Signal gauge */
+.gauge{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.gauge-bar{width:100%;height:8px;background:var(--input);border-radius:4px;overflow:hidden;position:relative;}
+.gauge-fill{height:100%;border-radius:4px;transition:width 0.5s;}
+.gauge-labels{display:flex;justify-content:space-between;width:100%;font-size:9px;color:var(--muted);}
+
+/* Signal row */
+.sig-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(42,53,80,0.3);font-size:12px;}
+.sig-row:last-child{border-bottom:none;}
+.sig-name{flex:1;color:var(--sub);}
+.sig-val{width:80px;text-align:right;font-weight:600;}
+.sig-signal{width:60px;text-align:center;}
+
+/* Key levels */
+.level-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(42,53,80,0.2);font-size:11px;}
+.level-row:last-child{border-bottom:none;}
+.level-label{width:100px;color:var(--muted);font-size:10px;}
+.level-price{font-weight:700;width:80px;}
+.level-bar-wrap{flex:1;height:6px;background:var(--input);border-radius:3px;overflow:hidden;position:relative;}
+.level-marker{position:absolute;width:3px;height:100%;background:var(--gold);border-radius:2px;}
+.level-dist{width:70px;text-align:right;font-size:10px;color:var(--sub);}
+
+/* Strategy cards */
+.strat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:default;}
+.strat-card.bullish{border-color:rgba(0,200,5,0.3);}
+.strat-card.bearish{border-color:rgba(255,80,0,0.3);}
+.strat-card.neutral{border-color:rgba(254,201,37,0.3);}
+.strat-card h4{font-size:13px;margin-bottom:4px;}
+.strat-card p{font-size:10px;color:var(--sub);line-height:1.5;}
+.strat-card .action{margin-top:8px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;display:inline-block;}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty .icon{font-size:40px;opacity:0.3;margin-bottom:8px;}
+.empty p{font-size:13px;}
+
+::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>TechSignals <span>Pro</span></h1>
+  <p>Technical Analysis for Options Trading — Based on Fidelity's TA Framework</p>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="symInput" placeholder="Enter ticker..." value="SMCI" onkeydown="if(event.key==='Enter')analyze()"/>
+  <button id="analyzeBtn" onclick="analyze()">Analyze</button>
+  <div class="quick-picks">
+    <button class="qp" onclick="pickSym('SMCI')">SMCI</button>
+    <button class="qp" onclick="pickSym('RIVN')">RIVN</button>
+    <button class="qp" onclick="pickSym('SOFI')">SOFI</button>
+    <button class="qp" onclick="pickSym('SOUN')">SOUN</button>
+    <button class="qp" onclick="pickSym('URNJ')">URNJ</button>
+    <button class="qp" onclick="pickSym('BBAI')">BBAI</button>
+    <button class="qp" onclick="pickSym('SPY')">SPY</button>
+    <button class="qp" onclick="pickSym('QQQ')">QQQ</button>
+  </div>
+</div>
+
+<div class="main" id="mainContent">
+  <div class="empty" id="emptyState">
+    <div class="icon">📊</div>
+    <p>Enter a ticker and click Analyze to get full technical analysis with buy/sell signals, key levels, and options strategy recommendations.</p>
+  </div>
+  <div id="results" style="display:none;"></div>
+</div>
+
+<script>
+function pickSym(s){document.getElementById('symInput').value=s;analyze();}
+
+async function analyze(){
+  const sym=document.getElementById('symInput').value.trim().toUpperCase();
+  if(!sym)return;
+  const btn=document.getElementById('analyzeBtn');
+  btn.disabled=true;btn.textContent='Loading...';
+
+  try{
+    // Fetch 6 months daily data from Yahoo Finance via proxy
+    const url=`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=6mo`)}`;
+    const resp=await fetch(url);
+    if(!resp.ok)throw new Error('Fetch failed');
+    const wrapper=await resp.json();
+    const data=JSON.parse(wrapper.contents);
+
+    const chart=data?.chart?.result?.[0];
+    if(!chart)throw new Error('No data for '+sym);
+
+    const meta=chart.meta;
+    const timestamps=chart.timestamp;
+    const quotes=chart.indicators.quote[0];
+    const closes=quotes.close.filter(v=>v!=null);
+    const highs=quotes.high.filter(v=>v!=null);
+    const lows=quotes.low.filter(v=>v!=null);
+    const volumes=quotes.volume.filter(v=>v!=null);
+    const opens=quotes.open.filter(v=>v!=null);
+
+    const price=meta.regularMarketPrice;
+    const prevClose=meta.chartPreviousClose;
+    const dayChange=price-prevClose;
+    const dayPct=(dayChange/prevClose*100);
+
+    // ── Compute Indicators ──
+    const sma20=sma(closes,20);
+    const sma50=sma(closes,50);
+    const sma200=sma(closes,200);
+    const ema12=ema(closes,12);
+    const ema26=ema(closes,26);
+
+    // MACD
+    const macdLine=ema12-ema26;
+    const macdSignalArr=[];
+    let prev=ema(closes.slice(0,26),9);
+    // Simplified: compute from last values
+    const macdSignal=macdLine*0.15+ema(closes.slice(-26),9)*0; // simplified
+    // Better MACD: compute full series
+    const macdSeries=[];
+    const ema12s=emaSeries(closes,12);
+    const ema26s=emaSeries(closes,26);
+    for(let i=0;i<closes.length;i++){
+      if(ema12s[i]!=null&&ema26s[i]!=null) macdSeries.push(ema12s[i]-ema26s[i]);
+      else macdSeries.push(null);
+    }
+    const macdSigSeries=emaSeries(macdSeries.filter(v=>v!=null),9);
+    const macdVal=macdSeries[macdSeries.length-1]||0;
+    const macdSig=macdSigSeries[macdSigSeries.length-1]||0;
+    const macdHist=macdVal-macdSig;
+
+    // RSI (14)
+    const rsiVal=rsi(closes,14);
+
+    // Bollinger Bands (20,2)
+    const bbMid=sma20;
+    const bbStd=stddev(closes.slice(-20));
+    const bbUpper=bbMid+2*bbStd;
+    const bbLower=bbMid-2*bbStd;
+    const bbWidth=(bbUpper-bbLower)/bbMid*100;
+    const bbPctB=(price-bbLower)/(bbUpper-bbLower)*100;
+
+    // Support & Resistance (from recent highs/lows)
+    const recent60=closes.slice(-60);
+    const recent60H=highs.slice(-60);
+    const recent60L=lows.slice(-60);
+    const support1=Math.min(...recent60L.slice(-20));
+    const support2=Math.min(...recent60L);
+    const resistance1=Math.max(...recent60H.slice(-20));
+    const resistance2=Math.max(...recent60H);
+
+    // Pivot Points (from last day)
+    const lastH=highs[highs.length-1];
+    const lastL=lows[lows.length-1];
+    const lastC=closes[closes.length-1];
+    const pivot=(lastH+lastL+lastC)/3;
+    const pivotR1=2*pivot-lastL;
+    const pivotR2=pivot+(lastH-lastL);
+    const pivotS1=2*pivot-lastH;
+    const pivotS2=pivot-(lastH-lastL);
+
+    // Volume analysis
+    const avgVol=avg(volumes.slice(-20));
+    const lastVol=volumes[volumes.length-1];
+    const volRatio=lastVol/avgVol;
+
+    // ATR (14)
+    const atrVal=atr(highs,lows,closes,14);
+
+    // Trend detection
+    const trend=price>sma50?(price>sma200?'Strong Uptrend':'Uptrend'):(price<sma200?'Strong Downtrend':'Downtrend');
+    const trendColor=trend.includes('Up')?'var(--green)':'var(--red)';
+
+    // ── Generate Signals ──
+    const signals=[];
+    let buyCount=0,sellCount=0,neutralCount=0;
+
+    // 1. SMA 20 cross
+    const sma20sig=price>sma20?'Buy':'Sell';
+    signals.push({name:'Price vs SMA(20)',val:`$${sma20.toFixed(2)}`,sig:sma20sig});
+    sma20sig==='Buy'?buyCount++:sellCount++;
+
+    // 2. SMA 50 cross
+    const sma50sig=price>sma50?'Buy':'Sell';
+    signals.push({name:'Price vs SMA(50)',val:`$${sma50.toFixed(2)}`,sig:sma50sig});
+    sma50sig==='Buy'?buyCount++:sellCount++;
+
+    // 3. SMA 200 cross
+    if(sma200>0){
+      const sma200sig=price>sma200?'Buy':'Sell';
+      signals.push({name:'Price vs SMA(200)',val:`$${sma200.toFixed(2)}`,sig:sma200sig});
+      sma200sig==='Buy'?buyCount++:sellCount++;
+    }
+
+    // 4. Golden/Death cross (50 vs 200)
+    if(sma200>0){
+      const crossSig=sma50>sma200?'Buy':'Sell';
+      signals.push({name:'SMA(50) vs SMA(200)',val:sma50>sma200?'Golden Cross':'Death Cross',sig:crossSig});
+      crossSig==='Buy'?buyCount++:sellCount++;
+    }
+
+    // 5. MACD
+    const macdSigLabel=macdVal>macdSig?'Buy':'Sell';
+    signals.push({name:'MACD',val:macdVal.toFixed(3),sig:macdSigLabel});
+    macdSigLabel==='Buy'?buyCount++:sellCount++;
+
+    // 6. MACD Histogram
+    const histSig=macdHist>0?'Buy':'Sell';
+    signals.push({name:'MACD Histogram',val:macdHist.toFixed(3),sig:histSig});
+    histSig==='Buy'?buyCount++:sellCount++;
+
+    // 7. RSI
+    let rsiSig='Neutral';
+    if(rsiVal<30)rsiSig='Buy'; // oversold
+    else if(rsiVal>70)rsiSig='Sell'; // overbought
+    else if(rsiVal<45)rsiSig='Buy';
+    else if(rsiVal>55)rsiSig='Sell';
+    signals.push({name:'RSI(14)',val:rsiVal.toFixed(1),sig:rsiSig});
+    rsiSig==='Buy'?buyCount++:rsiSig==='Sell'?sellCount++:neutralCount++;
+
+    // 8. Bollinger Bands
+    let bbSig='Neutral';
+    if(price<=bbLower)bbSig='Buy'; // at lower band
+    else if(price>=bbUpper)bbSig='Sell'; // at upper band
+    else if(bbPctB<30)bbSig='Buy';
+    else if(bbPctB>70)bbSig='Sell';
+    signals.push({name:'Bollinger Bands',val:`%B: ${bbPctB.toFixed(1)}%`,sig:bbSig});
+    bbSig==='Buy'?buyCount++:bbSig==='Sell'?sellCount++:neutralCount++;
+
+    // 9. Volume
+    let volSig='Neutral';
+    if(volRatio>1.5&&dayChange>0)volSig='Buy';
+    else if(volRatio>1.5&&dayChange<0)volSig='Sell';
+    signals.push({name:'Volume',val:`${volRatio.toFixed(1)}x avg`,sig:volSig});
+    volSig==='Buy'?buyCount++:volSig==='Sell'?sellCount++:neutralCount++;
+
+    // 10. Support/Resistance proximity
+    const distToSupport=((price-support1)/price*100);
+    const distToResist=((resistance1-price)/price*100);
+    let srSig='Neutral';
+    if(distToSupport<2)srSig='Buy'; // near support
+    else if(distToResist<2)srSig='Sell'; // near resistance
+    signals.push({name:'Support/Resistance',val:`S:$${support1.toFixed(2)} R:$${resistance1.toFixed(2)}`,sig:srSig});
+    srSig==='Buy'?buyCount++:srSig==='Sell'?sellCount++:neutralCount++;
+
+    const totalSigs=buyCount+sellCount+neutralCount;
+    const overallScore=(buyCount-sellCount)/totalSigs;
+    let overallSignal='Hold';
+    if(overallScore>0.3)overallSignal='Buy';
+    else if(overallScore<-0.3)overallSignal='Sell';
+    const overallBadge=overallSignal==='Buy'?'badge-buy':overallSignal==='Sell'?'badge-sell':'badge-hold';
+
+    // ── Options Strategy Recommendation ──
+    let strategies=[];
+    if(overallSignal==='Buy'){
+      strategies=[
+        {name:'Buy Calls',type:'bullish',desc:`Trend is up. Consider buying calls near $${support1.toFixed(0)} strike with 30-60 DTE. Entry near support at $${support1.toFixed(2)}.`,action:'Buy Call'},
+        {name:'Sell Cash-Secured Puts',type:'bullish',desc:`Collect premium by selling puts at $${pivotS1.toFixed(0)} strike. If assigned, you buy at a discount. Works in uptrend.`,action:'Sell Put'},
+        {name:'Bull Call Spread',type:'bullish',desc:`Buy call at $${Math.round(price)} strike, sell call at $${Math.round(resistance1)} strike. Defined risk, lower cost than naked calls.`,action:'Spread'},
+      ];
+    } else if(overallSignal==='Sell'){
+      strategies=[
+        {name:'Buy Puts',type:'bearish',desc:`Trend is down. Consider puts near $${resistance1.toFixed(0)} strike with 30-60 DTE. Target profit near support $${support1.toFixed(2)}.`,action:'Buy Put'},
+        {name:'Sell Covered Calls',type:'bearish',desc:`If holding shares, sell calls at $${resistance1.toFixed(0)} strike to collect premium while the stock drifts lower.`,action:'Sell Call'},
+        {name:'Bear Put Spread',type:'bearish',desc:`Buy put at $${Math.round(price)} strike, sell put at $${Math.round(support1)} strike. Defined risk bearish play.`,action:'Spread'},
+      ];
+    } else {
+      strategies=[
+        {name:'Iron Condor',type:'neutral',desc:`Range-bound: Sell put at $${pivotS1.toFixed(0)}, buy put at $${pivotS2.toFixed(0)}, sell call at $${pivotR1.toFixed(0)}, buy call at $${pivotR2.toFixed(0)}. Profit from theta decay.`,action:'Condor'},
+        {name:'Straddle/Strangle',type:'neutral',desc:`If expecting a big move but unsure of direction. BB width is ${bbWidth.toFixed(1)}% — ${bbWidth<10?'bands are tight, breakout likely!':'moderate width.'} Buy both call and put.`,action:'Straddle'},
+        {name:'Covered Call',type:'neutral',desc:`If holding shares, sell calls at $${resistance1.toFixed(0)} to earn income while waiting for direction.`,action:'Sell Call'},
+      ];
+    }
+
+    // ── Render ──
+    const r=document.getElementById('results');
+    document.getElementById('emptyState').style.display='none';
+    r.style.display='block';
+
+    r.innerHTML=`
+    <!-- Price Header -->
+    <div class="grid g2 mb" style="grid-template-columns:1fr auto;">
+      <div>
+        <div style="font-size:28px;font-weight:800;">${sym}</div>
+        <div style="display:flex;align-items:baseline;gap:10px;margin-top:4px;">
+          <span style="font-size:32px;font-weight:700;">$${price.toFixed(2)}</span>
+          <span class="${dayChange>=0?'pnl-pos':'pnl-neg'}" style="font-size:16px;font-weight:600;">${dayChange>=0?'+':''}${dayChange.toFixed(2)} (${dayPct>=0?'+':''}${dayPct.toFixed(2)}%)</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+          Trend: <span style="color:${trendColor};font-weight:600;">${trend}</span> &middot;
+          ATR(14): $${atrVal.toFixed(2)} &middot;
+          Vol: ${(lastVol/1e6).toFixed(1)}M (${volRatio.toFixed(1)}x avg)
+        </div>
+      </div>
+      <div class="card center" style="min-width:160px;">
+        <div class="lbl">Overall Signal</div>
+        <div class="val"><span class="badge ${overallBadge}" style="font-size:16px;padding:4px 16px;">${overallSignal.toUpperCase()}</span></div>
+        <div class="sm">${buyCount} buy · ${sellCount} sell · ${neutralCount} neutral</div>
+        <div class="gauge" style="margin-top:8px;">
+          <div class="gauge-bar">
+            <div class="gauge-fill" style="width:${(buyCount/totalSigs*100).toFixed(0)}%;background:var(--green);"></div>
+          </div>
+          <div class="gauge-labels"><span>Sell</span><span>Buy</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Levels -->
+    <div class="section">
+      <div class="sec-title">Key Levels</div>
+      <div class="card">
+        ${renderLevel('Resistance 2',resistance2,support2,resistance2,price)}
+        ${renderLevel('Resistance 1',resistance1,support2,resistance2,price)}
+        ${renderLevel('Pivot R1',pivotR1,support2,resistance2,price)}
+        ${renderLevel('Pivot',pivot,support2,resistance2,price)}
+        ${renderLevel('Pivot S1',pivotS1,support2,resistance2,price)}
+        ${renderLevel('Support 1',support1,support2,resistance2,price)}
+        ${renderLevel('Support 2',support2,support2,resistance2,price)}
+        ${renderLevel('SMA 20',sma20,support2,resistance2,price)}
+        ${renderLevel('SMA 50',sma50,support2,resistance2,price)}
+        ${sma200>0?renderLevel('SMA 200',sma200,Math.min(support2,sma200*0.95),Math.max(resistance2,sma200*1.05),price):''}
+        ${renderLevel('BB Upper',bbUpper,support2,Math.max(resistance2,bbUpper),price)}
+        ${renderLevel('BB Lower',bbLower,Math.min(support2,bbLower),resistance2,price)}
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);">
+          Current price: <span style="color:var(--gold);font-weight:700;">$${price.toFixed(2)}</span> &middot;
+          Distance to Support 1: <span class="pnl-neg">${distToSupport.toFixed(1)}%</span> &middot;
+          Distance to Resistance 1: <span class="pnl-pos">${distToResist.toFixed(1)}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Signals -->
+    <div class="section">
+      <div class="sec-title">Technical Signals <span class="badge ${overallBadge}">${buyCount} Buy / ${sellCount} Sell / ${neutralCount} Neutral</span></div>
+      <div class="card">
+        ${signals.map(s=>`
+          <div class="sig-row">
+            <span class="sig-name">${s.name}</span>
+            <span class="sig-val">${s.val}</span>
+            <span class="sig-signal"><span class="badge ${s.sig==='Buy'?'badge-buy':s.sig==='Sell'?'badge-sell':'badge-neutral'}">${s.sig}</span></span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Bollinger Bands Detail -->
+    <div class="section">
+      <div class="sec-title">Bollinger Bands Analysis</div>
+      <div class="grid g3">
+        <div class="card center">
+          <div class="lbl">Upper Band</div>
+          <div class="val" style="font-size:16px;">$${bbUpper.toFixed(2)}</div>
+          <div class="sm">${price>=bbUpper?'Price AT upper band — overbought':'$'+(bbUpper-price).toFixed(2)+' above price'}</div>
+        </div>
+        <div class="card center">
+          <div class="lbl">%B (Position)</div>
+          <div class="val" style="font-size:16px;color:${bbPctB<20?'var(--green)':bbPctB>80?'var(--red)':'var(--gold)'};">${bbPctB.toFixed(1)}%</div>
+          <div class="sm">${bbPctB<20?'Near lower band — oversold':bbPctB>80?'Near upper band — overbought':'Mid-range'}</div>
+        </div>
+        <div class="card center">
+          <div class="lbl">Band Width</div>
+          <div class="val" style="font-size:16px;">${bbWidth.toFixed(1)}%</div>
+          <div class="sm">${bbWidth<8?'TIGHT — Squeeze! Breakout likely':'Normal volatility'}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RSI + MACD -->
+    <div class="grid g2 mb">
+      <div class="card">
+        <div class="lbl">RSI (14)</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="val" style="font-size:24px;color:${rsiVal<30?'var(--green)':rsiVal>70?'var(--red)':'var(--text)'};">${rsiVal.toFixed(1)}</div>
+          <div style="flex:1;">
+            <div class="gauge-bar" style="height:10px;">
+              <div style="position:absolute;left:0;width:30%;height:100%;background:var(--green-dim);border-radius:4px 0 0 4px;"></div>
+              <div style="position:absolute;right:0;width:30%;height:100%;background:var(--red-dim);border-radius:0 4px 4px 0;"></div>
+              <div style="position:absolute;left:${rsiVal}%;width:3px;height:100%;background:var(--gold);border-radius:2px;transform:translateX(-50%);"></div>
+            </div>
+            <div class="gauge-labels"><span>Oversold (30)</span><span>Overbought (70)</span></div>
+          </div>
+        </div>
+        <div class="sm" style="margin-top:6px;">${rsiVal<30?'OVERSOLD — Potential bounce. Consider buying calls.':rsiVal<40?'Approaching oversold territory.':rsiVal>70?'OVERBOUGHT — Potential pullback. Consider selling or buying puts.':rsiVal>60?'Approaching overbought territory.':'Neutral zone.'}</div>
+      </div>
+      <div class="card">
+        <div class="lbl">MACD</div>
+        <div style="display:flex;gap:16px;margin-top:4px;">
+          <div><div style="font-size:10px;color:var(--muted);">MACD Line</div><div style="font-size:16px;font-weight:700;">${macdVal.toFixed(3)}</div></div>
+          <div><div style="font-size:10px;color:var(--muted);">Signal Line</div><div style="font-size:16px;font-weight:700;">${macdSig.toFixed(3)}</div></div>
+          <div><div style="font-size:10px;color:var(--muted);">Histogram</div><div style="font-size:16px;font-weight:700;color:${macdHist>0?'var(--green)':'var(--red)'};">${macdHist.toFixed(3)}</div></div>
+        </div>
+        <div class="sm" style="margin-top:6px;">${macdVal>macdSig?'MACD above signal — Bullish momentum. MACD crossover is a buy signal.':'MACD below signal — Bearish momentum. Consider bearish strategies.'}</div>
+      </div>
+    </div>
+
+    <!-- Options Strategy Recommendations -->
+    <div class="section">
+      <div class="sec-title">Options Strategy Recommendations</div>
+      <div class="grid g3">
+        ${strategies.map(s=>`
+          <div class="strat-card ${s.type}">
+            <h4>${s.name}</h4>
+            <p>${s.desc}</p>
+            <div class="action" style="background:${s.type==='bullish'?'var(--green-dim);color:var(--green)':s.type==='bearish'?'var(--red-dim);color:var(--red)':'var(--gold-dim);color:var(--gold)'};">${s.action}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Entry/Exit Plan -->
+    <div class="section">
+      <div class="sec-title">Entry & Exit Plan</div>
+      <div class="card">
+        <div class="grid g2" style="gap:16px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px;">Entry Strategy</div>
+            <div style="font-size:11px;color:var(--sub);line-height:1.7;">
+              ${overallSignal==='Buy'?`
+                <b>Wait for confirmation:</b> Price holds above SMA(20) at $${sma20.toFixed(2)}<br>
+                <b>Entry zone:</b> $${support1.toFixed(2)} — $${(support1+(price-support1)*0.3).toFixed(2)}<br>
+                <b>Trigger:</b> Breakout above $${resistance1.toFixed(2)} with volume > ${(avgVol*1.5/1e6).toFixed(1)}M<br>
+                <b>Strike:</b> ATM or 1 strike OTM, 30-60 DTE
+              `:overallSignal==='Sell'?`
+                <b>Wait for confirmation:</b> Price breaks below SMA(20) at $${sma20.toFixed(2)}<br>
+                <b>Entry zone:</b> $${(resistance1-(resistance1-price)*0.3).toFixed(2)} — $${resistance1.toFixed(2)}<br>
+                <b>Trigger:</b> Breakdown below $${support1.toFixed(2)} with volume > ${(avgVol*1.5/1e6).toFixed(1)}M<br>
+                <b>Strike:</b> ATM or 1 strike OTM, 30-60 DTE
+              `:`
+                <b>Wait for breakout:</b> Above $${resistance1.toFixed(2)} or below $${support1.toFixed(2)}<br>
+                <b>Range:</b> $${support1.toFixed(2)} — $${resistance1.toFixed(2)}<br>
+                <b>BB Width:</b> ${bbWidth.toFixed(1)}% ${bbWidth<10?'— Squeeze detected, breakout imminent!':''}<br>
+                <b>Strategy:</b> Sell premium (iron condor/strangle) if range-bound
+              `}
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px;">Exit Strategy</div>
+            <div style="font-size:11px;color:var(--sub);line-height:1.7;">
+              <b>Stop Loss:</b> $${(price-atrVal*2).toFixed(2)} (2x ATR below entry)<br>
+              <b>Profit Target 1:</b> $${(price+atrVal*1.5).toFixed(2)} (1.5x ATR)<br>
+              <b>Profit Target 2:</b> $${(price+atrVal*3).toFixed(2)} (3x ATR)<br>
+              <b>Time Stop:</b> Exit if no move in 5-7 days<br>
+              <b>Signal Exit:</b> RSI crosses ${overallSignal==='Buy'?'70 (overbought)':'30 (oversold)'} OR MACD crosses signal line
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:16px;font-size:10px;color:var(--muted);">
+      This is for educational purposes only. Not financial advice. Always do your own research.
+    </div>
+    `;
+
+  }catch(e){
+    document.getElementById('results').style.display='block';
+    document.getElementById('results').innerHTML=`<div class="card center" style="color:var(--red);padding:30px;">Failed to fetch data for ${sym}: ${e.message}<br><span style="font-size:10px;color:var(--muted);margin-top:4px;display:block;">Try again or check the ticker symbol.</span></div>`;
+    document.getElementById('emptyState').style.display='none';
+  }finally{
+    btn.disabled=false;btn.textContent='Analyze';
+  }
+}
+
+function renderLevel(label,value,minRange,maxRange,currentPrice){
+  const range=maxRange-minRange||1;
+  const pct=Math.max(0,Math.min(100,((value-minRange)/range)*100));
+  const pricePct=Math.max(0,Math.min(100,((currentPrice-minRange)/range)*100));
+  const dist=((value-currentPrice)/currentPrice*100);
+  const distStr=dist>0?`+${dist.toFixed(1)}%`:`${dist.toFixed(1)}%`;
+  const distColor=Math.abs(dist)<2?'color:var(--gold)':dist>0?'color:var(--green)':'color:var(--red)';
+  return `<div class="level-row">
+    <span class="level-label">${label}</span>
+    <span class="level-price">$${value.toFixed(2)}</span>
+    <div class="level-bar-wrap">
+      <div class="level-marker" style="left:${pricePct}%;background:var(--gold);width:2px;opacity:0.4;"></div>
+      <div class="level-marker" style="left:${pct}%;background:${label.includes('Support')||label.includes('S1')||label.includes('S2')||label.includes('Lower')?'var(--green)':label.includes('Resist')||label.includes('R1')||label.includes('R2')||label.includes('Upper')?'var(--red)':'var(--blue)'};"></div>
+    </div>
+    <span class="level-dist" style="${distColor}">${distStr}</span>
+  </div>`;
+}
+
+// ── Math helpers ──
+function sma(arr,period){
+  if(arr.length<period)return arr.reduce((a,b)=>a+b,0)/arr.length;
+  const slice=arr.slice(-period);
+  return slice.reduce((a,b)=>a+b,0)/period;
+}
+
+function emaSeries(arr,period){
+  const result=[];
+  const k=2/(period+1);
+  let prev=null;
+  for(let i=0;i<arr.length;i++){
+    if(arr[i]==null){result.push(null);continue;}
+    if(prev==null){
+      if(i>=period-1){
+        prev=arr.slice(i-period+1,i+1).reduce((a,b)=>a+(b||0),0)/period;
+        result.push(prev);
+      }else{result.push(null);}
+    }else{
+      prev=arr[i]*k+prev*(1-k);
+      result.push(prev);
+    }
+  }
+  return result;
+}
+
+function ema(arr,period){
+  const series=emaSeries(arr,period);
+  for(let i=series.length-1;i>=0;i--){
+    if(series[i]!=null)return series[i];
+  }
+  return 0;
+}
+
+function rsi(closes,period){
+  if(closes.length<period+1)return 50;
+  let gains=0,losses=0;
+  for(let i=closes.length-period;i<closes.length;i++){
+    const diff=closes[i]-closes[i-1];
+    if(diff>0)gains+=diff;else losses+=Math.abs(diff);
+  }
+  gains/=period;losses/=period;
+  if(losses===0)return 100;
+  const rs=gains/losses;
+  return 100-100/(1+rs);
+}
+
+function stddev(arr){
+  const m=arr.reduce((a,b)=>a+b,0)/arr.length;
+  return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0)/arr.length);
+}
+
+function avg(arr){return arr.reduce((a,b)=>a+b,0)/arr.length;}
+
+function atr(highs,lows,closes,period){
+  const trs=[];
+  for(let i=1;i<closes.length;i++){
+    const tr=Math.max(highs[i]-lows[i],Math.abs(highs[i]-closes[i-1]),Math.abs(lows[i]-closes[i-1]));
+    trs.push(tr);
+  }
+  return avg(trs.slice(-period));
+}
+</script>
+</body>
+</html>

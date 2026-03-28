@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robinhood Portfolio Tracker</title>
+<style>
+:root{--bg:#0a0e1a;--card:#1a2235;--border:#2a3550;--input:#0f1629;--green:#00c805;--green-dim:rgba(0,200,5,0.1);--red:#ff5000;--red-dim:rgba(255,80,0,0.1);--gold:#fec925;--gold-dim:rgba(254,201,37,0.12);--blue:#3b82f6;--blue-dim:rgba(59,130,246,0.1);--purple:#a855f7;--purple-dim:rgba(168,85,247,0.1);--text:#e2e8f0;--sub:#94a3b8;--muted:#64748b;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px;}
+.mx{max-width:960px;margin:0 auto;}
+.header{text-align:center;margin-bottom:20px;}
+.header h1{font-size:24px;font-weight:700;} .header h1 span{color:var(--green);}
+.header p{font-size:11px;color:var(--muted);margin-top:2px;}
+.grid{display:grid;gap:10px;margin-bottom:16px;}
+.g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:repeat(3,1fr);} .g4{grid-template-columns:repeat(4,1fr);} .g5{grid-template-columns:repeat(5,1fr);} .g6{grid-template-columns:repeat(6,1fr);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.card.c{text-align:center;}
+.lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.7px;color:var(--muted);font-weight:600;margin-bottom:4px;}
+.val{font-size:20px;font-weight:700;}
+.sm{font-size:10px;color:var(--sub);margin-top:2px;}
+.pos{color:var(--green);} .neg{color:var(--red);}
+.sec{margin-bottom:20px;}
+.sec-t{font-size:13px;font-weight:700;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+.bg{background:var(--green-dim);color:var(--green);} .br{background:var(--red-dim);color:var(--red);} .by{background:var(--gold-dim);color:var(--gold);} .bb{background:var(--blue-dim);color:var(--blue);} .bp{background:var(--purple-dim);color:var(--purple);}
+table{width:100%;border-collapse:collapse;font-size:11px;}
+th{text-align:left;padding:6px 10px;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);}
+td{padding:7px 10px;border-bottom:1px solid rgba(42,53,80,0.25);}
+tr:hover td{background:rgba(255,255,255,0.01);}
+.tk{font-weight:700;font-size:12px;} .sh{color:var(--sub);}
+.prg-wrap{margin-bottom:16px;}
+.prg-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:3px;}
+.prg-track{height:8px;background:var(--card);border-radius:4px;overflow:hidden;border:1px solid var(--border);}
+.prg-fill{height:100%;border-radius:4px;}
+.prg-sub{font-size:9px;color:var(--muted);text-align:center;margin-top:3px;}
+.yr{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;overflow:hidden;}
+.yr-h{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer;font-size:13px;}
+.yr-h:hover{background:rgba(255,255,255,0.02);}
+.yr-h .t{font-weight:700;} .yr-h .v{font-weight:700;color:var(--green);} .yr-h .c{font-size:10px;color:var(--muted);}
+.yr-h .a{color:var(--muted);font-size:10px;transition:transform 0.2s;}
+.yr.open .yr-h .a{transform:rotate(180deg);}
+.yr-b{display:none;border-top:1px solid var(--border);}
+.yr.open .yr-b{display:block;}
+.tx{display:flex;align-items:center;padding:5px 14px;font-size:10px;border-bottom:1px solid rgba(42,53,80,0.15);}
+.tx:last-child{border-bottom:none;}
+.tx .d{color:var(--sub);width:60px;} .tx .n{flex:1;color:var(--muted);} .tx .a{font-weight:600;color:var(--green);text-align:right;width:80px;}
+.tx .st{font-size:8px;padding:1px 5px;border-radius:5px;margin-left:5px;}
+.tx.ex{opacity:0.3;} .tx.ex .a{text-decoration:line-through;color:var(--muted);}
+.alloc{display:flex;height:16px;border-radius:6px;overflow:hidden;margin:6px 0;}
+.alloc div{display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:white;min-width:0;overflow:hidden;}
+.al{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.al span{display:flex;align-items:center;gap:3px;font-size:9px;color:var(--sub);}
+.al .dot{width:7px;height:7px;border-radius:2px;}
+.tabs{display:flex;gap:4px;margin-bottom:8px;}
+.tab{padding:4px 12px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;}
+.tab:hover{border-color:var(--gold);color:var(--gold);}
+.tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.pane{display:none;} .pane.active{display:block;}
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="mx">
+
+<div class="header">
+  <h1>Robinhood <span>Portfolio Tracker</span></h1>
+  <p>Complete P&L — Deposits, Stocks, Options, Crypto</p>
+</div>
+
+<!-- ══ TOP CARDS ══ -->
+<div class="grid g2">
+  <div class="card c">
+    <div class="lbl">Account Value</div>
+    <div class="val">$22,057.95</div>
+    <div class="sm">Holdings $19,968.11 + Cash $2,089.84</div>
+  </div>
+  <div class="card c" style="border-color:rgba(255,80,0,0.3);">
+    <div class="lbl">Net P&L (vs Deposited)</div>
+    <div class="val neg">-$5,166.05</div>
+    <div class="sm neg">-18.98% on $27,224 deposited</div>
+  </div>
+</div>
+
+<div class="prg-wrap">
+  <div class="prg-labels"><span>Account: $22,057.95</span><span>Deposited: $27,224</span></div>
+  <div class="prg-track"><div class="prg-fill" style="width:81%;background:linear-gradient(90deg,var(--green),var(--red));"></div></div>
+  <div class="prg-sub">81% of capital remaining</div>
+</div>
+
+<div class="grid g6">
+  <div class="card c"><div class="lbl">Deposited</div><div class="val pos" style="font-size:16px;">$27,224</div><div class="sm">48 deposits</div></div>
+  <div class="card c"><div class="lbl">Stocks Value</div><div class="val" style="font-size:16px;">$18,477</div><div class="sm">6 positions</div></div>
+  <div class="card c"><div class="lbl">Options Value</div><div class="val" style="font-size:16px;">$1,364</div><div class="sm">4 open</div></div>
+  <div class="card c"><div class="lbl">Crypto</div><div class="val" style="font-size:16px;">$61</div><div class="sm">DOGE + SHIB</div></div>
+  <div class="card c"><div class="lbl">Cash</div><div class="val" style="font-size:16px;">$2,090</div></div>
+  <div class="card c"><div class="lbl">Overall Loss</div><div class="val neg" style="font-size:16px;">-$5,166</div><div class="sm">-18.98%</div></div>
+</div>
+
+<!-- ══ REALIZED P&L SUMMARY ══ -->
+<div class="sec">
+  <div class="sec-t">Realized P&L Summary</div>
+  <div class="grid g4">
+    <div class="card c">
+      <div class="lbl">Options Realized</div>
+      <div class="val neg" style="font-size:18px;">-$3,054</div>
+      <div class="sm">45 closed trades</div>
+    </div>
+    <div class="card c">
+      <div class="lbl">Options Winners</div>
+      <div class="val pos" style="font-size:18px;">+$3,455</div>
+      <div class="sm">28 wins (62% win rate)</div>
+    </div>
+    <div class="card c">
+      <div class="lbl">Options Losers</div>
+      <div class="val neg" style="font-size:18px;">-$6,509</div>
+      <div class="sm">17 losses</div>
+    </div>
+    <div class="card c">
+      <div class="lbl">Stocks Realized</div>
+      <div class="val pos" style="font-size:18px;">+$6,338</div>
+      <div class="sm">14 trades, all wins</div>
+    </div>
+  </div>
+  <div class="grid g3" style="margin-top:10px;">
+    <div class="card c">
+      <div class="lbl">Total Realized P&L</div>
+      <div class="val pos" style="font-size:22px;">+$3,284</div>
+      <div class="sm">Options (-$3,054) + Stocks (+$6,338)</div>
+    </div>
+    <div class="card c">
+      <div class="lbl">Avg Win (Options)</div>
+      <div class="val pos" style="font-size:16px;">+$123</div>
+      <div class="sm">Avg return: +14.3%</div>
+    </div>
+    <div class="card c">
+      <div class="lbl">Avg Loss (Options)</div>
+      <div class="val neg" style="font-size:16px;">-$383</div>
+      <div class="sm">8 expired worthless (-100%)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ KEY INSIGHT ══ -->
+<div class="card" style="border-color:var(--gold);margin-bottom:16px;padding:16px;">
+  <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px;">Key Insight</div>
+  <div style="font-size:11px;color:var(--sub);line-height:1.7;">
+    Your <b style="color:var(--text)">stock trades are profitable (+$6,338, 100% win rate)</b>. The loss comes from options:
+    <b style="color:var(--red)">8 contracts expired worthless (-$4,096)</b> — that's 63% of total options losses.
+    Your option wins average +$123 but losses average -$383 (3:1 ratio against you).
+    <b style="color:var(--gold)">Fix: Size options smaller, use stops before expiry, avoid holding to expiration.</b>
+  </div>
+</div>
+
+<!-- ══ OPTIONS REALIZED P&L ══ -->
+<div class="sec">
+  <div class="sec-t">Options — Realized P&L (45 trades) <span class="badge br">-$3,054</span></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showPane('optAll',this)">All</button>
+    <button class="tab" onclick="showPane('optWin',this)">Winners</button>
+    <button class="tab" onclick="showPane('optLoss',this)">Losers</button>
+    <button class="tab" onclick="showPane('optExp',this)">Expired Worthless</button>
+  </div>
+
+  <!-- ALL -->
+  <div class="pane active" id="optAll">
+  <div class="card" style="padding:0;overflow-x:auto;max-height:500px;overflow-y:auto;">
+    <table>
+      <thead><tr><th>Contract</th><th>Date</th><th>P&L</th><th>%</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">SPXW 6510 Call</td><td class="sh">Mar 27, 2026</td><td class="neg">-$250</td><td class="neg">-84.75%</td></tr>
+        <tr><td class="tk">SPXW 6310 Put</td><td class="sh">Mar 27, 2026</td><td class="neg">-$45</td><td class="neg">-60.00%</td></tr>
+        <tr><td class="tk">SPXW 6320 Put</td><td class="sh">Mar 27, 2026</td><td class="pos">+$20</td><td class="pos">+22.23%</td></tr>
+        <tr><td class="tk">SPXW 6340 Put</td><td class="sh">Mar 27, 2026</td><td class="sh">$0</td><td class="sh">0%</td></tr>
+        <tr><td class="tk">MSFT $357.5 Put</td><td class="sh">Mar 27, 2026</td><td class="sh">$0</td><td class="sh">0%</td></tr>
+        <tr><td class="tk">SPXW 6345 Put</td><td class="sh">Mar 27, 2026</td><td class="pos">+$30</td><td class="pos">+13.64%</td></tr>
+        <tr><td class="tk">META $525 Put</td><td class="sh">Mar 27, 2026</td><td class="pos">+$50</td><td class="pos">+29.07%</td></tr>
+        <tr><td class="tk">CORZ $18 Call</td><td class="sh">Mar 27, 2026</td><td class="neg">-$525</td><td class="neg">-51.22%</td></tr>
+        <tr><td class="tk">TSLA $375 Call</td><td class="sh">Mar 27, 2026</td><td class="pos">+$130</td><td class="pos">+19.85%</td></tr>
+        <tr><td class="tk">MSFT $360 Put</td><td class="sh">Mar 26, 2026</td><td class="pos">+$1</td><td class="pos">+1.27%</td></tr>
+        <tr><td class="tk">AAPL $257.5 Call</td><td class="sh">Mar 26, 2026</td><td class="pos">+$27</td><td class="pos">+10.76%</td></tr>
+        <tr><td class="tk">AMD $202.5 Put</td><td class="sh">Mar 26, 2026</td><td class="pos">+$1</td><td class="pos">+0.82%</td></tr>
+        <tr><td class="tk">AMD $207.5 Put</td><td class="sh">Mar 26, 2026</td><td class="pos">+$20</td><td class="pos">+8.70%</td></tr>
+        <tr><td class="tk">DELL $180 Put</td><td class="sh">Mar 26, 2026</td><td class="pos">+$195</td><td class="pos">+16.05%</td></tr>
+        <tr><td class="tk">BABA $130 Call</td><td class="sh">Mar 25, 2026</td><td class="pos">+$190</td><td class="pos">+26.77%</td></tr>
+        <tr><td class="tk">NVDA $177.5 Call</td><td class="sh">Mar 23, 2026</td><td class="pos">+$62</td><td class="pos">+22.72%</td></tr>
+        <tr><td class="tk">NVDA $177.5 Call</td><td class="sh">Mar 23, 2026</td><td class="pos">+$195</td><td class="pos">+13.64%</td></tr>
+        <tr><td class="tk">KRE $65 Call</td><td class="sh">Mar 23, 2026</td><td class="pos">+$30</td><td class="pos">+2.66%</td></tr>
+        <tr><td class="tk">SPY $662 Call</td><td class="sh">Mar 20, 2026</td><td class="neg">-$790</td><td class="neg">-86.82%</td></tr>
+        <tr><td class="tk">TSLA $375 Call</td><td class="sh">Mar 20, 2026</td><td class="pos">+$110</td><td class="pos">+7.92%</td></tr>
+        <tr><td class="tk">AMD $205 Call</td><td class="sh">Mar 18, 2026</td><td class="pos">+$535</td><td class="pos">+19.93%</td></tr>
+        <tr><td class="tk">TSLL $14.5 Call</td><td class="sh">Mar 18, 2026</td><td class="pos">+$80</td><td class="pos">+14.55%</td></tr>
+        <tr><td class="tk">AMZN $215 Call</td><td class="sh">Mar 17, 2026</td><td class="pos">+$39</td><td class="pos">+16.89%</td></tr>
+        <tr><td class="tk">AMZN $215 Call</td><td class="sh">Mar 17, 2026</td><td class="pos">+$19</td><td class="pos">+8.23%</td></tr>
+        <tr><td class="tk">XLF $50 Call</td><td class="sh">Mar 17, 2026</td><td class="pos">+$274</td><td class="pos">+17.96%</td></tr>
+        <tr><td class="tk">HOOD $80 Call</td><td class="sh">Mar 17, 2026</td><td class="pos">+$80</td><td class="pos">+22.54%</td></tr>
+        <tr><td class="tk">JNJ $230 Put</td><td class="sh">Mar 16, 2026</td><td class="pos">+$5</td><td class="pos">+0.97%</td></tr>
+        <tr><td class="tk">TQQQ $47 Put</td><td class="sh">Mar 16, 2026</td><td class="pos">+$51</td><td class="pos">+13.71%</td></tr>
+        <tr><td class="tk">TSLA $405 Call</td><td class="sh">Mar 13, 2026</td><td class="pos">+$56</td><td class="pos">+12.62%</td></tr>
+        <tr><td class="tk">SPY $683 Call exp</td><td class="sh">Mar 11, 2026</td><td class="neg" style="font-weight:700;">-$1,250</td><td class="neg">-100%</td></tr>
+        <tr><td class="tk">TNA $45 Call</td><td class="sh">Mar 9, 2026</td><td class="pos">+$165</td><td class="pos">+18.14%</td></tr>
+        <tr><td class="tk">SPY $674 Call</td><td class="sh">Mar 9, 2026</td><td class="neg">-$60</td><td class="neg">-20.00%</td></tr>
+        <tr><td class="tk">PG $155 Call</td><td class="sh">Mar 6, 2026</td><td class="pos">+$50</td><td class="pos">+12.83%</td></tr>
+        <tr><td class="tk">PG $155 Call</td><td class="sh">Mar 6, 2026</td><td class="pos">+$50</td><td class="pos">+12.83%</td></tr>
+        <tr><td class="tk">SPY $680 Call</td><td class="sh">Mar 6, 2026</td><td class="neg">-$10</td><td class="neg">-4.81%</td></tr>
+        <tr><td class="tk">IWM $260 Call exp</td><td class="sh">Mar 5, 2026</td><td class="neg" style="font-weight:700;">-$500</td><td class="neg">-100%</td></tr>
+        <tr><td class="tk">SOUN $9.5 Call exp</td><td class="sh">Jan 30, 2026</td><td class="neg" style="font-weight:700;">-$400</td><td class="neg">-100%</td></tr>
+        <tr><td class="tk">SMCI $49.5 Call</td><td class="sh">Oct 24, 2025</td><td class="neg">-$156</td><td class="neg">-97.50%</td></tr>
+        <tr><td class="tk">BBAI $7.5 Call exp</td><td class="sh">Aug 15, 2025</td><td class="neg" style="font-weight:700;">-$600</td><td class="neg">-100%</td></tr>
+        <tr><td class="tk">QBTS $19 Call exp</td><td class="sh">Aug 8, 2025</td><td class="neg" style="font-weight:700;">-$1,350</td><td class="neg">-100%</td></tr>
+        <tr><td class="tk">QBTS $14.5 Call</td><td class="sh">Jul 1, 2025</td><td class="neg">-$32</td><td class="neg">-8.34%</td></tr>
+        <tr><td class="tk">QBTS $16 Call exp</td><td class="sh">Jun 27, 2025</td><td class="neg" style="font-weight:700;">-$190</td><td class="neg">-100%</td></tr>
+        <tr><td class="tk">SOFI $18.5 Call exp</td><td class="sh">Mar 7, 2025</td><td class="neg" style="font-weight:700;">-$270</td><td class="neg">-100%</td></tr>
+        <tr><td class="tk">ACHR $10 Call exp</td><td class="sh">Mar 7, 2025</td><td class="neg" style="font-weight:700;">-$114</td><td class="neg">-100%</td></tr>
+        <tr><td class="tk">SMCI $50 Call exp</td><td class="sh">Feb 28, 2025</td><td class="neg" style="font-weight:700;">-$400</td><td class="neg">-100%</td></tr>
+        <tr><td class="tk">SOUN $11.5 Call exp</td><td class="sh">Feb 28, 2025</td><td class="neg" style="font-weight:700;">-$312</td><td class="neg">-100%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  </div>
+
+  <!-- WINNERS -->
+  <div class="pane" id="optWin">
+    <div class="card" style="font-size:11px;color:var(--sub);line-height:1.8;">
+      <b style="color:var(--green)">28 winning trades — Total: +$3,455</b><br>
+      Best: AMD $205 Call +$535 (+19.93%) | XLF $50 Call +$274 (+17.96%)<br>
+      Avg win: +$123 | Avg return: +14.3%<br>
+      Most traded winners: TSLA (3), NVDA (2), AMD (2), PG (2), AMZN (2)
+    </div>
+  </div>
+
+  <!-- LOSERS -->
+  <div class="pane" id="optLoss">
+    <div class="card" style="font-size:11px;color:var(--sub);line-height:1.8;">
+      <b style="color:var(--red)">17 losing trades — Total: -$6,509</b><br>
+      Worst: QBTS $19 Call -$1,350 (-100%) | SPY $683 Call -$1,250 (-100%)<br>
+      Avg loss: -$383 | 8 expired worthless totaling -$4,096<br>
+      <b style="color:var(--gold)">Pattern:</b> Losses concentrated in contracts held to expiration and large SPY bets.
+    </div>
+  </div>
+
+  <!-- EXPIRED -->
+  <div class="pane" id="optExp">
+    <div class="card" style="font-size:11px;color:var(--sub);line-height:1.8;">
+      <b style="color:var(--red)">8 contracts expired worthless — Total: -$4,096</b><br>
+      SPY $683 Call: -$1,250 | QBTS $19 Call: -$1,350 | BBAI $7.5 Call: -$600<br>
+      IWM $260 Call: -$500 | SOUN $9.5 Call: -$400 | SMCI $50 Call: -$400<br>
+      SOUN $11.5 Call: -$312 | SOFI $18.5 Call: -$270 | QBTS $16 Call: -$190 | ACHR $10 Call: -$114<br>
+      <b style="color:var(--gold)">Action:</b> Set alerts to exit at 50% loss instead of holding to expiry.
+    </div>
+  </div>
+</div>
+
+<!-- ══ STOCKS REALIZED P&L ══ -->
+<div class="sec">
+  <div class="sec-t">Stocks — Realized P&L (14 trades) <span class="badge bg">+$6,338</span></div>
+  <div class="card" style="padding:0;overflow-x:auto;">
+    <table>
+      <thead><tr><th>Stock</th><th>Date</th><th>P&L</th><th>%</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">QBTS market sell</td><td class="sh">Feb 13, 2026</td><td class="pos">+$1,520.16</td><td class="pos">+318.70%</td></tr>
+        <tr><td class="tk">QBTS market sell</td><td class="sh">Sep 22, 2025</td><td class="pos">+$3,975.00</td><td class="pos">+323.70%</td></tr>
+        <tr><td class="tk">CNR limit sell</td><td class="sh">Mar 19, 2026</td><td class="pos">+$314.30</td><td class="pos">+13.38%</td></tr>
+        <tr><td class="tk">NVDA market sell</td><td class="sh">Feb 13, 2025</td><td class="pos">+$328.76</td><td class="pos">+31.77%</td></tr>
+        <tr><td class="tk">MDB market sell</td><td class="sh">Mar 5, 2026</td><td class="pos">+$241.58</td><td class="pos">+6.53%</td></tr>
+        <tr><td class="tk">PLTR market sell</td><td class="sh">Mar 4, 2026</td><td class="pos">+$162.64</td><td class="pos">+10.87%</td></tr>
+        <tr><td class="tk">BABA market sell</td><td class="sh">Mar 25, 2026</td><td class="pos" style="display:none">—</td><td class="sh">—</td></tr>
+        <tr><td class="tk">GRAB market sell</td><td class="sh">Jul 18, 2025</td><td class="pos">+$32.52</td><td class="pos">+6.45%</td></tr>
+        <tr><td class="tk">FIG market sell</td><td class="sh">Sep 22, 2025</td><td class="pos">+$25.60</td><td class="pos">+77.58%</td></tr>
+        <tr><td class="tk">BBAI limit sell</td><td class="sh">Mar 5, 2026</td><td class="pos">+$12.62</td><td class="pos">+1.59%</td></tr>
+        <tr><td class="tk">F market sell</td><td class="sh">Nov 6, 2024</td><td class="pos">+$12.38</td><td class="pos">+4.72%</td></tr>
+        <tr><td class="tk">AIRO market sell</td><td class="sh">Sep 22, 2025</td><td class="pos">+$10.15</td><td class="pos">+101.50%</td></tr>
+        <tr><td class="tk">BBAI market sell</td><td class="sh">Mar 12, 2026</td><td class="pos">+$7.40</td><td class="pos">+3.72%</td></tr>
+        <tr><td class="tk">KWE market sell</td><td class="sh">Nov 22, 2024</td><td class="pos">+$7.55</td><td class="pos">+0.50%</td></tr>
+        <tr><td class="tk">QLGN limit sell</td><td class="sh">Sep 22, 2025</td><td class="pos">+$5.58</td><td class="pos">+1.92%</td></tr>
+        <tr><td class="tk">CNR market sell</td><td class="sh">Mar 19, 2026</td><td class="pos">+$0.27</td><td class="pos">+10.80%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ CURRENT HOLDINGS ══ -->
+<div class="sec">
+  <div class="sec-t">Current Holdings — Stocks <span class="badge bb">$18,477</span></div>
+  <div class="card" style="padding:0;overflow-x:auto;">
+    <table>
+      <thead><tr><th>Ticker</th><th>Shares</th><th>Price</th><th>Mkt Value</th><th>Day %</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">SMCI</td><td class="sh">250</td><td>$21.79</td><td>$5,447.50</td><td class="neg">-1.89%</td></tr>
+        <tr><td class="tk">RIVN</td><td class="sh">350</td><td>$14.81</td><td>$5,183.50</td><td class="neg">-2.63%</td></tr>
+        <tr><td class="tk">SOUN</td><td class="sh">650</td><td>$5.88</td><td>$3,822.00</td><td class="neg">-2.97%</td></tr>
+        <tr><td class="tk">SOFI</td><td class="sh">200</td><td>$15.10</td><td>$3,020.00</td><td class="neg">-4.85%</td></tr>
+        <tr><td class="tk">URNJ</td><td class="sh">25</td><td>$27.59</td><td>$689.75</td><td class="pos">+0.69%</td></tr>
+        <tr><td class="tk">BBAI</td><td class="sh">100</td><td>$3.14</td><td>$314.00</td><td class="neg">-5.42%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="sec-t">Current Holdings — Options <span class="badge bp">$1,364</span></div>
+  <div class="card" style="padding:0;overflow-x:auto;">
+    <table>
+      <thead><tr><th>Contract</th><th>Qty</th><th>Price</th><th>Value</th><th>P&L %</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">USO $117 Put <span class="sh">4/8</span></td><td class="sh">1</td><td>$5.68</td><td>$568</td><td class="neg">-32.78%</td></tr>
+        <tr><td class="tk">SILJ $35 Call <span class="sh">4/17</span></td><td class="sh">8</td><td>$0.27</td><td>$216</td><td class="pos">+50.00%</td></tr>
+        <tr><td class="tk">KWEB $30 Call <span class="sh">5/15</span></td><td class="sh">3</td><td>$0.75</td><td>$225</td><td class="neg">-11.76%</td></tr>
+        <tr><td class="tk">SMCI $35 Call <span class="sh">6/18</span></td><td class="sh">5</td><td>$0.71</td><td>$355</td><td class="neg">-8.97%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="sec-t">Current Holdings — Crypto <span class="badge by">$61</span></div>
+  <div class="card" style="padding:0;overflow-x:auto;">
+    <table>
+      <thead><tr><th>Coin</th><th>Qty</th><th>Price</th><th>Value</th><th>Day %</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">DOGE</td><td class="sh">652.71</td><td>$0.08993</td><td>$58.69</td><td class="neg">-2.15%</td></tr>
+        <tr><td class="tk">SHIB</td><td class="sh">361,900</td><td>$0.00000578</td><td>$2.09</td><td class="neg">-2.27%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ ALLOCATION ══ -->
+<div class="sec">
+  <div class="sec-t">Portfolio Allocation</div>
+  <div class="alloc">
+    <div style="width:83.8%;background:var(--blue);">Stocks</div>
+    <div style="width:6.2%;background:var(--purple);">Opt</div>
+    <div style="width:0.3%;background:var(--gold);"></div>
+    <div style="width:9.5%;background:var(--muted);">Cash</div>
+  </div>
+  <div class="al">
+    <span><span class="dot" style="background:var(--blue)"></span>Stocks 83.8%</span>
+    <span><span class="dot" style="background:var(--purple)"></span>Options 6.2%</span>
+    <span><span class="dot" style="background:var(--gold)"></span>Crypto 0.3%</span>
+    <span><span class="dot" style="background:var(--muted)"></span>Cash 9.5%</span>
+  </div>
+</div>
+
+<!-- ══ DEPOSITS ══ -->
+<div class="sec">
+  <div class="sec-t">Deposits <span class="badge bg">$27,224 total</span></div>
+  <div class="grid g3" style="margin-bottom:10px;">
+    <div class="card c"><div class="lbl">2024</div><div class="val pos" style="font-size:16px;">$11,178</div><div class="sm">22 deposits</div></div>
+    <div class="card c"><div class="lbl">2025</div><div class="val pos" style="font-size:16px;">$11,595</div><div class="sm">18 deposits</div></div>
+    <div class="card c"><div class="lbl">2026</div><div class="val pos" style="font-size:16px;">$4,451</div><div class="sm">8 deposits</div></div>
+  </div>
+
+  <div class="yr open"><div class="yr-h" onclick="this.parentElement.classList.toggle('open')"><div><span class="t">2026</span> <span class="c">· 8 deposits</span></div><div style="display:flex;gap:8px;align-items:center;"><span class="v">$4,451</span><span class="a">&#9660;</span></div></div><div class="yr-b">
+    <div class="tx"><span class="d">Mar 27</span><span class="n">Deposit</span><span class="a">+$500</span><span class="st" style="background:var(--gold-dim);color:var(--gold);">Pending</span></div>
+    <div class="tx"><span class="d">Mar 25</span><span class="n">Instant</span><span class="a">+$1,000</span></div>
+    <div class="tx"><span class="d">Mar 23</span><span class="n">Instant</span><span class="a">+$500</span></div>
+    <div class="tx"><span class="d">Mar 16</span><span class="n">Instant</span><span class="a">+$400</span></div>
+    <div class="tx ex"><span class="d">Mar 16</span><span class="n">Instant</span><span class="a">+$500</span><span class="st" style="background:var(--red-dim);color:var(--red);">Canceled</span></div>
+    <div class="tx"><span class="d">Mar 16</span><span class="n">Instant</span><span class="a">+$1</span></div>
+    <div class="tx"><span class="d">Mar 14</span><span class="n">Instant</span><span class="a">+$250</span></div>
+    <div class="tx"><span class="d">Mar 5</span><span class="n">Instant</span><span class="a">+$1,500</span></div>
+    <div class="tx"><span class="d">Mar 4</span><span class="n">Instant</span><span class="a">+$300</span></div>
+  </div></div>
+
+  <div class="yr"><div class="yr-h" onclick="this.parentElement.classList.toggle('open')"><div><span class="t">2025</span> <span class="c">· 18 deposits</span></div><div style="display:flex;gap:8px;align-items:center;"><span class="v">$11,595</span><span class="a">&#9660;</span></div></div><div class="yr-b">
+    <div class="tx"><span class="d">Jul 23</span><span class="n">Deposit</span><span class="a">+$2,000</span></div><div class="tx"><span class="d">Jul 22</span><span class="n">Deposit</span><span class="a">+$200</span></div><div class="tx ex"><span class="d">Jul 22</span><span class="n">Instant</span><span class="a">+$2,000</span><span class="st" style="background:rgba(100,116,139,0.2);color:var(--muted);">Expired</span></div><div class="tx"><span class="d">Jun 19</span><span class="n">Instant</span><span class="a">+$100</span></div><div class="tx"><span class="d">Jun 12</span><span class="n">Instant</span><span class="a">+$150</span></div><div class="tx"><span class="d">May 28</span><span class="n">Instant</span><span class="a">+$500</span></div><div class="tx"><span class="d">May 14</span><span class="n">Instant</span><span class="a">+$700</span></div><div class="tx"><span class="d">May 12</span><span class="n">Instant</span><span class="a">+$640</span></div><div class="tx"><span class="d">Apr 20</span><span class="n">Instant</span><span class="a">+$500</span></div><div class="tx"><span class="d">Mar 11</span><span class="n">Instant</span><span class="a">+$900</span></div><div class="tx"><span class="d">Mar 5</span><span class="n">Deposit</span><span class="a">+$500</span></div><div class="tx"><span class="d">Feb 24</span><span class="n">Instant</span><span class="a">+$500</span></div><div class="tx"><span class="d">Feb 21</span><span class="n">Instant</span><span class="a">+$500</span></div><div class="tx"><span class="d">Feb 18</span><span class="n">Instant</span><span class="a">+$500</span></div><div class="tx"><span class="d">Feb 13</span><span class="n">Instant</span><span class="a">+$100</span></div><div class="tx"><span class="d">Feb 4</span><span class="n">Deposit</span><span class="a">+$5</span></div><div class="tx"><span class="d">Jan 14</span><span class="n">Instant</span><span class="a">+$700</span></div><div class="tx"><span class="d">Jan 8</span><span class="n">Instant</span><span class="a">+$1,600</span></div><div class="tx"><span class="d">Jan 2</span><span class="n">Instant</span><span class="a">+$1,500</span></div>
+  </div></div>
+
+  <div class="yr"><div class="yr-h" onclick="this.parentElement.classList.toggle('open')"><div><span class="t">2024</span> <span class="c">· 22 deposits</span></div><div style="display:flex;gap:8px;align-items:center;"><span class="v">$11,178</span><span class="a">&#9660;</span></div></div><div class="yr-b">
+    <div class="tx"><span class="d">Dec 6</span><span class="n">Instant</span><span class="a">+$100</span></div><div class="tx"><span class="d">Nov 14</span><span class="n">Instant (+1% boost)</span><span class="a">+$1,000</span></div><div class="tx"><span class="d">Nov 14</span><span class="n">Instant (+1% boost)</span><span class="a">+$428</span></div><div class="tx"><span class="d">Nov 6</span><span class="n">Instant (+1% boost)</span><span class="a">+$600</span></div><div class="tx"><span class="d">Nov 5</span><span class="n">Instant (+1% boost)</span><span class="a">+$1,000</span></div><div class="tx"><span class="d">Nov 4</span><span class="n">Instant (+1% boost)</span><span class="a">+$250</span></div><div class="tx"><span class="d">Oct 30</span><span class="n">Instant (+1% boost)</span><span class="a">+$800</span></div><div class="tx"><span class="d">Oct 30</span><span class="n">Instant (+1% boost)</span><span class="a">+$1,000</span></div><div class="tx"><span class="d">Oct 30</span><span class="n">Instant (+1% boost)</span><span class="a">+$1,000</span></div><div class="tx"><span class="d">Oct 30</span><span class="n">Instant (+1% boost)</span><span class="a">+$500</span></div><div class="tx"><span class="d">Oct 18</span><span class="n">Instant (+1% boost)</span><span class="a">+$500</span></div><div class="tx"><span class="d">Oct 9</span><span class="n">Instant (+1% boost)</span><span class="a">+$500</span></div><div class="tx"><span class="d">Oct 7</span><span class="n">Deposit (+1% boost)</span><span class="a">+$500</span></div><div class="tx"><span class="d">Sep 27</span><span class="n">Deposit</span><span class="a">+$500</span></div><div class="tx"><span class="d">Sep 18</span><span class="n">Deposit</span><span class="a">+$500</span></div><div class="tx"><span class="d">Sep 12</span><span class="n">Deposit</span><span class="a">+$500</span></div><div class="tx"><span class="d">Aug 5</span><span class="n">Instant</span><span class="a">+$1,000</span></div><div class="tx"><span class="d">Jul 10</span><span class="n">Deposit</span><span class="a">+$100</span></div><div class="tx"><span class="d">Jul 1</span><span class="n">Deposit</span><span class="a">+$100</span></div><div class="tx"><span class="d">Jun 21</span><span class="n">Deposit</span><span class="a">+$100</span></div><div class="tx"><span class="d">Jun 17</span><span class="n">Deposit</span><span class="a">+$100</span></div><div class="tx"><span class="d">May 31</span><span class="n">Deposit</span><span class="a">+$100</span></div>
+  </div></div>
+</div>
+
+<div style="text-align:center;padding:12px;font-size:9px;color:var(--muted);">
+  Data extracted from Robinhood screenshots. Not for tax purposes.
+</div>
+
+</div><!-- mx -->
+
+<script>
+function showPane(id,btn){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
