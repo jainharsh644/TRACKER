@@ -127,12 +127,20 @@ td{padding:6px 8px;border-bottom:1px solid rgba(42,53,80,0.2);}
 </div>
 
 <!-- ══ KEY NUMBERS ══ -->
-<div class="grid g5">
+<div class="grid g3">
   <div class="card c"><div class="lbl">Income</div><div class="val" style="font-size:16px;">$7,400</div><div class="sm">/month</div></div>
-  <div class="card c"><div class="lbl">Expenses</div><div class="val" style="font-size:16px;" id="expTotal">$3,162</div><div class="sm">/month</div></div>
-  <div class="card c"><div class="lbl">Savings</div><div class="val pos" style="font-size:16px;" id="savTotal">$4,238</div><div class="sm">/month</div></div>
-  <div class="card c"><div class="lbl">Total Saved</div><div class="val gld" style="font-size:16px;" id="totalSaved">$0</div><div class="sm" id="totalSavedInr">₹0</div></div>
-  <div class="card c"><div class="lbl">Months Left</div><div class="val" style="font-size:16px;" id="monthsLeft">20</div><div class="sm" id="monthTarget">Nov 2027</div></div>
+  <div class="card c"><div class="lbl">Expenses</div><div class="val" style="font-size:16px;" id="expTotal">$3,037</div><div class="sm">/month</div></div>
+  <div class="card c"><div class="lbl">Savings</div><div class="val pos" style="font-size:16px;" id="savTotal">$4,363</div><div class="sm">/month → goals</div></div>
+</div>
+<div class="grid g4">
+  <div class="card c" style="border-color:rgba(239,68,68,0.3);">
+    <div class="lbl">Emergency Fund</div>
+    <div class="val" style="font-size:16px;color:#ef4444;">$9,000</div>
+    <div class="sm">3 months expenses — DO NOT TOUCH</div>
+  </div>
+  <div class="card c"><div class="lbl">Total Sent</div><div class="val gld" style="font-size:16px;" id="totalSaved">$0</div><div class="sm" id="totalSavedInr">₹0</div></div>
+  <div class="card c"><div class="lbl">Months Left</div><div class="val" style="font-size:16px;" id="monthsLeft">20</div><div class="sm" id="monthTarget">Oct 2027</div></div>
+  <div class="card c"><div class="lbl">Robinhood (Hold)</div><div class="val" style="font-size:16px;color:var(--blue);">$22K</div><div class="sm">Cash out month 8-10</div></div>
 </div>
 
 <!-- ══ TABS ══ -->
@@ -207,9 +215,14 @@ td{padding:6px 8px;border-bottom:1px solid rgba(42,53,80,0.2);}
       <div class="ff" style="flex:1;"><label>Trips/Shopping (annual)</label><input type="number" id="bTrips" value="6000" onchange="updateBudget()" /></div>
       <div class="ff" style="flex:1;"><label>Personal/Misc</label><input type="number" id="bMisc" value="100" onchange="updateBudget()" /></div>
       <div class="ff" style="flex:1;"><label>Income</label><input type="number" id="bIncome" value="7400" onchange="updateBudget()" /></div>
-      <div class="ff" style="flex:1;"><label>Starting Savings</label><input type="number" id="bStartSavings" value="10000" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Total Savings</label><input type="number" id="bTotalSavings" value="10000" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Emergency Fund</label><input type="number" id="bEmergency" value="9000" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Available for Goals</label><input type="number" id="bStartSavings" value="1000" readonly style="color:var(--gold);" /></div>
+    </div>
+    <div class="form-row">
       <div class="ff" style="flex:1;"><label>Robinhood Cash Out</label><input type="number" id="bRobinhood" value="25000" onchange="updateBudget()" /></div>
       <div class="ff" style="flex:1;"><label>RH Cash Out Month</label><input type="number" id="bRhMonth" value="8" min="1" max="24" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Monthly Health/Med</label><input type="number" id="bHealth" value="0" onchange="updateBudget()" placeholder="0 if employer covers" /></div>
     </div>
   </div>
 </div>
@@ -422,14 +435,24 @@ function renderPayments() {
 
 function renderBudget() {
   const income = parseFloat(document.getElementById('bIncome')?.value) || 7400;
+
+  // Calculate available savings (total - emergency)
+  const totalSav = parseFloat(document.getElementById('bTotalSavings')?.value) || 10000;
+  const emergency = parseFloat(document.getElementById('bEmergency')?.value) || 9000;
+  const startAvail = Math.max(0, totalSav - emergency);
+  document.getElementById('bStartSavings').value = startAvail;
+
+  const healthAmt = parseFloat(document.getElementById('bHealth')?.value) || 0;
+
   const items = [
     { name: 'Rent', amt: parseFloat(document.getElementById('bRent')?.value) || 1525, color: 'var(--red)' },
     { name: 'Car EMI', amt: parseFloat(document.getElementById('bCar')?.value) || 587, color: 'var(--purple)' },
-    { name: 'Food/Groceries', amt: parseFloat(document.getElementById('bFood')?.value) || 350, color: 'var(--gold)' },
+    { name: 'Food/Groceries', amt: parseFloat(document.getElementById('bFood')?.value) || 225, color: 'var(--gold)' },
     { name: 'Utilities', amt: parseFloat(document.getElementById('bUtil')?.value) || 100, color: 'var(--blue)' },
     { name: 'Trips/Shopping', amt: Math.round((parseFloat(document.getElementById('bTrips')?.value) || 6000) / 12), color: 'var(--purple)' },
     { name: 'Personal/Misc', amt: parseFloat(document.getElementById('bMisc')?.value) || 100, color: 'var(--muted)' },
   ];
+  if (healthAmt > 0) items.push({ name: 'Health/Medical', amt: healthAmt, color: '#ef4444' });
 
   const totalExp = items.reduce((s, i) => s + i.amt, 0);
   const savings = income - totalExp;
@@ -458,7 +481,7 @@ function renderTimeline() {
   const savings = parseFloat(document.getElementById('savTotal')?.textContent?.replace(/[$,]/g, '')) || 4363;
   const rate = 85;
   const monthlyInr = Math.round(savings * rate);
-  const startSavings = parseFloat(document.getElementById('bStartSavings')?.value) || 10000;
+  const startSavings = parseFloat(document.getElementById('bStartSavings')?.value) || 1000;
   const startInr = Math.round(startSavings * rate);
   const robinhood = parseFloat(document.getElementById('bRobinhood')?.value) || 25000;
   const robinhoodInr = Math.round(robinhood * rate);
