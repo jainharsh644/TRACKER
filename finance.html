@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0e1a">
+<title>Financial Freedom Tracker</title>
+<style>
+:root{--bg:#0a0e1a;--card:#1a2235;--border:#2a3550;--input:#0f1629;--green:#00c805;--gd:rgba(0,200,5,0.1);--red:#ff5000;--rd:rgba(255,80,0,0.1);--gold:#fec925;--yd:rgba(254,201,37,0.12);--blue:#3b82f6;--bd:rgba(59,130,246,0.1);--purple:#a855f7;--text:#e2e8f0;--sub:#94a3b8;--muted:#64748b;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.mx{max-width:960px;margin:0 auto;padding:16px;}
+h1{font-size:22px;font-weight:700;text-align:center;margin-bottom:2px;} h1 span{color:var(--gold);}
+.sub-h{text-align:center;font-size:11px;color:var(--muted);margin-bottom:16px;}
+.grid{display:grid;gap:10px;margin-bottom:14px;}
+.g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:repeat(3,1fr);} .g4{grid-template-columns:repeat(4,1fr);} .g5{grid-template-columns:repeat(5,1fr);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.card.c{text-align:center;}
+.lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.7px;color:var(--muted);font-weight:600;margin-bottom:4px;}
+.val{font-size:20px;font-weight:700;}
+.sm{font-size:10px;color:var(--sub);margin-top:2px;}
+.pos{color:var(--green);} .neg{color:var(--red);} .gld{color:var(--gold);}
+.sec{margin-bottom:18px;}
+.sec-t{font-size:13px;font-weight:700;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+.bg{background:var(--gd);color:var(--green);} .br{background:var(--rd);color:var(--red);} .by{background:var(--yd);color:var(--gold);} .bb{background:var(--bd);color:var(--blue);}
+
+/* Progress bars */
+.prg{margin-bottom:14px;}
+.prg-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+.prg-h .t{font-size:13px;font-weight:700;}
+.prg-h .a{font-size:16px;font-weight:800;}
+.prg-track{height:20px;background:var(--input);border-radius:10px;overflow:hidden;border:1px solid var(--border);position:relative;}
+.prg-fill{height:100%;border-radius:10px;transition:width 0.5s;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:9px;font-weight:700;color:#000;min-width:30px;}
+.prg-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px;}
+
+/* Form */
+.form{background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:14px;}
+.form-t{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:10px;}
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-end;}
+.ff{display:flex;flex-direction:column;gap:3px;}
+.ff label{font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600;}
+.ff input,.ff select{background:var(--input);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px;outline:none;font-family:inherit;}
+.ff input:focus{border-color:var(--gold);}
+.ff select option{background:var(--card);}
+.btn{padding:7px 18px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+.btn-gold{background:var(--gold);color:#000;}
+.btn-sm{font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;border:none;font-family:inherit;}
+.btn-del{background:var(--rd);color:var(--red);}
+.btn-out{background:transparent;border:1px solid var(--border);color:var(--sub);font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:11px;}
+th{text-align:left;padding:5px 8px;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);}
+td{padding:6px 8px;border-bottom:1px solid rgba(42,53,80,0.2);}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:10px;}
+.tab{padding:5px 14px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;font-family:inherit;}
+.tab:hover{border-color:var(--gold);color:var(--gold);}
+.tab.active{background:var(--yd);border-color:var(--gold);color:var(--gold);}
+.pane{display:none;} .pane.active{display:block;}
+
+/* Budget row */
+.brow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(42,53,80,0.2);font-size:11px;}
+.brow:last-child{border-bottom:none;}
+.brow .name{flex:1;}
+.brow .amt{width:80px;text-align:right;font-weight:600;}
+.brow .bar-w{flex:1;height:6px;background:var(--input);border-radius:3px;overflow:hidden;}
+.brow .bar-f{height:100%;border-radius:3px;}
+
+/* Gold info */
+.gold-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;}
+.gold-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(42,53,80,0.15);}
+.gold-row:last-child{border-bottom:none;}
+.gold-row .gl{color:var(--sub);} .gold-row .gv{font-weight:600;}
+
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="mx">
+
+<h1>Financial <span>Freedom</span> Tracker</h1>
+<p class="sub-h">Goal: Clear ₹50L debt + Buy ₹50L gold = ₹1 Crore in 20 months</p>
+
+<!-- ══ OVERALL PROGRESS ══ -->
+<div class="prg">
+  <div class="prg-h">
+    <span class="t">Overall Progress</span>
+    <span class="a gld" id="overallAmt">₹0 / ₹1,00,00,000</span>
+  </div>
+  <div class="prg-track">
+    <div class="prg-fill" id="overallFill" style="width:0%;background:linear-gradient(90deg,var(--gold),var(--green));">0%</div>
+  </div>
+  <div class="prg-labels"><span>₹0</span><span id="overallEta">Target: ~Nov 2027</span><span>₹1 Cr</span></div>
+</div>
+
+<div class="grid g2">
+  <!-- Debt Progress -->
+  <div class="card">
+    <div class="prg">
+      <div class="prg-h">
+        <span class="t" style="font-size:12px;">Debt Repayment</span>
+        <span class="a" style="font-size:14px;" id="debtAmt">₹0 / ₹50,00,000</span>
+      </div>
+      <div class="prg-track" style="height:14px;">
+        <div class="prg-fill" id="debtFill" style="width:0%;background:var(--green);">0%</div>
+      </div>
+      <div class="prg-labels"><span id="debtLeft">₹50L remaining</span><span id="debtEta"></span></div>
+    </div>
+  </div>
+  <!-- Gold Progress -->
+  <div class="card">
+    <div class="prg">
+      <div class="prg-h">
+        <span class="t" style="font-size:12px;">Gold Purchase</span>
+        <span class="a" style="font-size:14px;" id="goldAmt">₹0 / ₹50,00,000</span>
+      </div>
+      <div class="prg-track" style="height:14px;">
+        <div class="prg-fill" id="goldFill" style="width:0%;background:var(--gold);">0%</div>
+      </div>
+      <div class="prg-labels"><span id="goldLeft">₹50L remaining</span><span id="goldGrams">~527g target</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ KEY NUMBERS ══ -->
+<div class="grid g5">
+  <div class="card c"><div class="lbl">Income</div><div class="val" style="font-size:16px;">$7,400</div><div class="sm">/month</div></div>
+  <div class="card c"><div class="lbl">Expenses</div><div class="val" style="font-size:16px;" id="expTotal">$3,162</div><div class="sm">/month</div></div>
+  <div class="card c"><div class="lbl">Savings</div><div class="val pos" style="font-size:16px;" id="savTotal">$4,238</div><div class="sm">/month</div></div>
+  <div class="card c"><div class="lbl">Total Saved</div><div class="val gld" style="font-size:16px;" id="totalSaved">$0</div><div class="sm" id="totalSavedInr">₹0</div></div>
+  <div class="card c"><div class="lbl">Months Left</div><div class="val" style="font-size:16px;" id="monthsLeft">20</div><div class="sm" id="monthTarget">Nov 2027</div></div>
+</div>
+
+<!-- ══ TABS ══ -->
+<div class="tabs">
+  <button class="tab active" onclick="showTab('payments',this)">Log Payment</button>
+  <button class="tab" onclick="showTab('budget',this)">Monthly Budget</button>
+  <button class="tab" onclick="showTab('timeline',this)">Timeline</button>
+  <button class="tab" onclick="showTab('gold',this)">Gold Calculator</button>
+  <button class="tab" onclick="showTab('history',this)">History</button>
+</div>
+
+<!-- LOG PAYMENT -->
+<div class="pane active" id="payments">
+  <div class="form">
+    <div class="form-t">Log Payment / Purchase</div>
+    <div class="form-row">
+      <div class="ff" style="flex:1;"><label>Date</label><input type="date" id="payDate" /></div>
+      <div class="ff" style="flex:1;">
+        <label>Category</label>
+        <select id="payCat">
+          <option value="debt">Debt Repayment</option>
+          <option value="gold">Gold Purchase</option>
+          <option value="robinhood">Robinhood Cash Out</option>
+        </select>
+      </div>
+      <div class="ff" style="flex:1;"><label>Amount (USD)</label><input type="number" id="payAmtUsd" placeholder="4238" step="0.01" /></div>
+      <div class="ff" style="flex:0.8;"><label>INR Rate</label><input type="number" id="payRate" placeholder="85" step="0.01" value="85" /></div>
+    </div>
+    <div class="form-row">
+      <div class="ff" style="flex:2;"><label>Notes</label><input type="text" id="payNotes" placeholder="Monthly transfer, gold bar 50g, etc..." /></div>
+      <div class="ff"><label>&nbsp;</label><button class="btn btn-gold" onclick="addPayment()">Log</button></div>
+    </div>
+    <div class="sm" style="margin-top:4px;">INR amount: <span id="payInrPreview" class="gld">₹0</span></div>
+  </div>
+
+  <!-- Recent payments -->
+  <div class="card" style="padding:0;max-height:400px;overflow-y:auto;">
+    <table>
+      <thead><tr><th>Date</th><th>Category</th><th>USD</th><th>INR</th><th>Notes</th><th></th></tr></thead>
+      <tbody id="payBody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">No payments yet. Start logging above.</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MONTHLY BUDGET -->
+<div class="pane" id="budget">
+  <div class="card">
+    <div class="lbl" style="margin-bottom:8px;">Monthly Budget Breakdown ($7,400 income)</div>
+    <div id="budgetBars"></div>
+    <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;">
+      <span>Monthly Savings:</span>
+      <span class="pos" style="font-weight:700;" id="budgetSavings">$4,238</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px;">
+      <span>Annual savings:</span><span id="annualSav">$50,856</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);">
+      <span>18-month savings:</span><span id="eighteenSav">$76,284</span>
+    </div>
+  </div>
+
+  <!-- Edit budget -->
+  <div class="form" style="margin-top:10px;">
+    <div class="form-t">Adjust Budget</div>
+    <div class="form-row">
+      <div class="ff" style="flex:1;"><label>Rent</label><input type="number" id="bRent" value="1525" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Car EMI</label><input type="number" id="bCar" value="587" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Food</label><input type="number" id="bFood" value="350" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Utilities</label><input type="number" id="bUtil" value="100" onchange="updateBudget()" /></div>
+    </div>
+    <div class="form-row">
+      <div class="ff" style="flex:1;"><label>Trips/Shopping (annual)</label><input type="number" id="bTrips" value="6000" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Personal/Misc</label><input type="number" id="bMisc" value="100" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Income</label><input type="number" id="bIncome" value="7400" onchange="updateBudget()" /></div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="pane" id="timeline">
+  <div id="timelineContent"></div>
+</div>
+
+<!-- GOLD CALCULATOR -->
+<div class="pane" id="gold">
+  <div class="grid g2">
+    <div class="card">
+      <div class="lbl">Gold Calculator — Chennai</div>
+      <div class="form-row" style="margin-top:8px;">
+        <div class="ff" style="flex:1;"><label>Budget (₹)</label><input type="number" id="goldBudget" value="5000000" onchange="calcGold()" /></div>
+        <div class="ff" style="flex:1;"><label>24K Rate/gram (₹)</label><input type="number" id="gold24k" value="9200" onchange="calcGold()" /></div>
+      </div>
+      <div class="form-row">
+        <div class="ff" style="flex:1;"><label>22K Rate/gram (₹)</label><input type="number" id="gold22k" value="8430" onchange="calcGold()" /></div>
+        <div class="ff" style="flex:1;"><label>Making Charges %</label><input type="number" id="goldMaking" value="12" onchange="calcGold()" /></div>
+      </div>
+      <div class="form-row">
+        <div class="ff" style="flex:1;"><label>Wastage %</label><input type="number" id="goldWaste" value="3" onchange="calcGold()" /></div>
+        <div class="ff" style="flex:1;"><label>GST Gold %</label><input type="number" id="goldGst" value="3" onchange="calcGold()" /></div>
+      </div>
+    </div>
+    <div class="card" id="goldResult">
+    </div>
+  </div>
+  <div class="card" style="margin-top:10px;">
+    <div class="lbl">Tips for Buying Gold in Chennai</div>
+    <div style="font-size:11px;color:var(--sub);line-height:1.8;margin-top:6px;">
+      <b style="color:var(--gold);">Best jewellers:</b> GRT, Joyalukkas, Tanishq, Kalyan (T. Nagar area)<br>
+      <b style="color:var(--gold);">Bar vs Jewellery:</b> Buy 24K bars and convert to jewellery — saves 5-10% vs buying ready-made<br>
+      <b style="color:var(--gold);">Hallmark:</b> Always buy BIS Hallmarked 916 (22K) for jewellery<br>
+      <b style="color:var(--gold);">Timing:</b> Buy on Akshaya Tritiya, Dhanteras, Pongal for discounts on making charges<br>
+      <b style="color:var(--gold);">Bargain:</b> Making charges are negotiable — aim for 8-10% at GRT/Kalyan<br>
+      <b style="color:var(--gold);">Digital first:</b> Accumulate via digital gold (MMTC-PAMP) monthly, convert to physical later — avoids timing risk
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="pane" id="history">
+  <div class="grid g3" id="historySummary"></div>
+  <div class="card" style="padding:0;max-height:500px;overflow-y:auto;margin-top:10px;">
+    <table>
+      <thead><tr><th>Month</th><th>Debt Paid</th><th>Gold Bought</th><th>Total</th><th>Debt Left</th><th>Gold Left</th></tr></thead>
+      <tbody id="histBody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">Payment history will appear here.</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- mx -->
+
+<script>
+const STORAGE = 'fin_freedom_tracker';
+const DEBT_TARGET = 5000000;
+const GOLD_TARGET = 5000000;
+const TOTAL_TARGET = DEBT_TARGET + GOLD_TARGET;
+
+function load() { try { return JSON.parse(localStorage.getItem(STORAGE)) || []; } catch(e) { return []; } }
+function save(d) { localStorage.setItem(STORAGE, JSON.stringify(d)); }
+
+let payments = load();
+
+// Set default date
+document.getElementById('payDate').valueAsDate = new Date();
+
+// INR preview
+['payAmtUsd','payRate'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    const usd = parseFloat(document.getElementById('payAmtUsd').value) || 0;
+    const rate = parseFloat(document.getElementById('payRate').value) || 85;
+    document.getElementById('payInrPreview').textContent = '₹' + Math.round(usd * rate).toLocaleString('en-IN');
+  });
+});
+
+function addPayment() {
+  const date = document.getElementById('payDate').value;
+  const cat = document.getElementById('payCat').value;
+  const usd = parseFloat(document.getElementById('payAmtUsd').value);
+  const rate = parseFloat(document.getElementById('payRate').value) || 85;
+  const notes = document.getElementById('payNotes').value.trim();
+  if (!date || isNaN(usd) || usd <= 0) { alert('Enter date and amount.'); return; }
+  const inr = Math.round(usd * rate);
+  payments.push({ id: Date.now(), date, cat, usd, rate, inr, notes });
+  payments.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+  save(payments);
+  document.getElementById('payAmtUsd').value = '';
+  document.getElementById('payNotes').value = '';
+  render();
+}
+
+function delPayment(id) {
+  if (!confirm('Delete?')) return;
+  payments = payments.filter(p => p.id !== id);
+  save(payments);
+  render();
+}
+
+function render() {
+  renderProgress();
+  renderPayments();
+  renderBudget();
+  renderTimeline();
+  calcGold();
+  renderHistory();
+}
+
+function renderProgress() {
+  const debtPaid = payments.filter(p => p.cat === 'debt' || p.cat === 'robinhood').reduce((s, p) => {
+    if (p.cat === 'robinhood') {
+      // Split robinhood based on what's needed
+      const debtRemaining = DEBT_TARGET - payments.filter(pp => pp.cat === 'debt' && pp.date <= p.date).reduce((ss, pp) => ss + pp.inr, 0);
+      return s + Math.min(p.inr, Math.max(0, debtRemaining));
+    }
+    return s + p.inr;
+  }, 0);
+
+  const goldBought = payments.filter(p => p.cat === 'gold').reduce((s, p) => s + p.inr, 0);
+  const totalPaid = payments.reduce((s, p) => s + p.inr, 0);
+  const totalUsd = payments.reduce((s, p) => s + p.usd, 0);
+
+  // Debt
+  const debtTotal = payments.filter(p => p.cat === 'debt').reduce((s, p) => s + p.inr, 0);
+  const debtPct = Math.min(100, debtTotal / DEBT_TARGET * 100);
+  document.getElementById('debtAmt').textContent = `₹${lf(debtTotal)} / ₹${lf(DEBT_TARGET)}`;
+  const df = document.getElementById('debtFill');
+  df.style.width = Math.max(debtPct, 2) + '%';
+  df.textContent = debtPct.toFixed(1) + '%';
+  document.getElementById('debtLeft').textContent = `₹${lf(Math.max(0, DEBT_TARGET - debtTotal))} remaining`;
+  if (debtTotal >= DEBT_TARGET) {
+    df.style.background = 'var(--green)';
+    df.textContent = 'CLEARED!';
+    document.getElementById('debtLeft').textContent = 'DEBT FREE!';
+  }
+
+  // Gold
+  const goldPct = Math.min(100, goldBought / GOLD_TARGET * 100);
+  document.getElementById('goldAmt').textContent = `₹${lf(goldBought)} / ₹${lf(GOLD_TARGET)}`;
+  const gf = document.getElementById('goldFill');
+  gf.style.width = Math.max(goldPct, 2) + '%';
+  gf.textContent = goldPct.toFixed(1) + '%';
+  document.getElementById('goldLeft').textContent = `₹${lf(Math.max(0, GOLD_TARGET - goldBought))} remaining`;
+  const goldRate = parseFloat(document.getElementById('gold24k')?.value) || 9200;
+  const gramsTarget = Math.round(GOLD_TARGET / (goldRate * 1.03));
+  const gramsBought = Math.round(goldBought / (goldRate * 1.03));
+  document.getElementById('goldGrams').textContent = `~${gramsBought}g / ${gramsTarget}g`;
+  if (goldBought >= GOLD_TARGET) {
+    gf.style.background = 'var(--gold)';
+    gf.textContent = 'DONE!';
+  }
+
+  // Overall
+  const overallPct = Math.min(100, totalPaid / TOTAL_TARGET * 100);
+  document.getElementById('overallAmt').textContent = `₹${lf(totalPaid)} / ₹${lf(TOTAL_TARGET)}`;
+  const of = document.getElementById('overallFill');
+  of.style.width = Math.max(overallPct, 2) + '%';
+  of.textContent = overallPct.toFixed(1) + '%';
+  if (totalPaid >= TOTAL_TARGET) { of.style.background = 'var(--green)'; of.textContent = 'GOAL REACHED!'; }
+
+  // Stats
+  document.getElementById('totalSaved').textContent = '$' + Math.round(totalUsd).toLocaleString();
+  document.getElementById('totalSavedInr').textContent = '₹' + lf(totalPaid);
+
+  // ETA
+  if (payments.length >= 2) {
+    const monthlyAvg = totalPaid / getMonthsElapsed();
+    if (monthlyAvg > 0) {
+      const remaining = TOTAL_TARGET - totalPaid;
+      const monthsNeeded = Math.ceil(remaining / monthlyAvg);
+      const eta = new Date();
+      eta.setMonth(eta.getMonth() + monthsNeeded);
+      document.getElementById('overallEta').textContent = `Projected: ${eta.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+      document.getElementById('monthsLeft').textContent = monthsNeeded;
+      document.getElementById('monthTarget').textContent = eta.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    }
+  }
+}
+
+function getMonthsElapsed() {
+  if (payments.length === 0) return 1;
+  const dates = payments.map(p => new Date(p.date));
+  const earliest = new Date(Math.min(...dates));
+  const now = new Date();
+  return Math.max(1, (now.getFullYear() - earliest.getFullYear()) * 12 + (now.getMonth() - earliest.getMonth()) + 1);
+}
+
+function renderPayments() {
+  const body = document.getElementById('payBody');
+  if (payments.length === 0) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">No payments yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = payments.map(p => {
+    const catLabel = { debt: 'Debt', gold: 'Gold', robinhood: 'Robinhood' }[p.cat] || p.cat;
+    const catBadge = { debt: 'bg', gold: 'by', robinhood: 'bb' }[p.cat] || 'by';
+    return `<tr>
+      <td style="color:var(--sub);">${fmtDate(p.date)}</td>
+      <td><span class="badge ${catBadge}">${catLabel}</span></td>
+      <td style="font-weight:600;">$${p.usd.toLocaleString()}</td>
+      <td style="font-weight:600;color:var(--gold);">₹${p.inr.toLocaleString('en-IN')}</td>
+      <td style="color:var(--sub);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.notes || ''}</td>
+      <td><button class="btn-sm btn-del" onclick="delPayment(${p.id})">x</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderBudget() {
+  const income = parseFloat(document.getElementById('bIncome')?.value) || 7400;
+  const items = [
+    { name: 'Rent', amt: parseFloat(document.getElementById('bRent')?.value) || 1525, color: 'var(--red)' },
+    { name: 'Car EMI', amt: parseFloat(document.getElementById('bCar')?.value) || 587, color: 'var(--purple)' },
+    { name: 'Food/Groceries', amt: parseFloat(document.getElementById('bFood')?.value) || 350, color: 'var(--gold)' },
+    { name: 'Utilities', amt: parseFloat(document.getElementById('bUtil')?.value) || 100, color: 'var(--blue)' },
+    { name: 'Trips/Shopping', amt: Math.round((parseFloat(document.getElementById('bTrips')?.value) || 6000) / 12), color: 'var(--purple)' },
+    { name: 'Personal/Misc', amt: parseFloat(document.getElementById('bMisc')?.value) || 100, color: 'var(--muted)' },
+  ];
+
+  const totalExp = items.reduce((s, i) => s + i.amt, 0);
+  const savings = income - totalExp;
+
+  const container = document.getElementById('budgetBars');
+  container.innerHTML = items.map(i => {
+    const pct = (i.amt / income * 100);
+    return `<div class="brow">
+      <span class="name">${i.name}</span>
+      <span class="amt">$${i.amt.toLocaleString()}</span>
+      <div class="bar-w"><div class="bar-f" style="width:${pct}%;background:${i.color};"></div></div>
+      <span style="width:40px;text-align:right;color:var(--muted);font-size:10px;">${pct.toFixed(0)}%</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('budgetSavings').textContent = '$' + savings.toLocaleString();
+  document.getElementById('annualSav').textContent = '$' + (savings * 12).toLocaleString();
+  document.getElementById('eighteenSav').textContent = '$' + (savings * 18).toLocaleString();
+  document.getElementById('expTotal').textContent = '$' + totalExp.toLocaleString();
+  document.getElementById('savTotal').textContent = '$' + savings.toLocaleString();
+}
+
+function updateBudget() { render(); }
+
+function renderTimeline() {
+  const savings = parseFloat(document.getElementById('savTotal')?.textContent?.replace(/[$,]/g, '')) || 4238;
+  const rate = 85;
+  const monthlyInr = Math.round(savings * rate);
+  const robinhood = 25000;
+  const robinhoodInr = robinhood * rate;
+
+  let debt = DEBT_TARGET;
+  let gold = 0;
+  const months = [];
+  const start = new Date(2026, 3); // April 2026
+
+  for (let m = 0; m < 24 && (debt > 0 || gold < GOLD_TARGET); m++) {
+    const d = new Date(start);
+    d.setMonth(d.getMonth() + m);
+    const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+
+    let available = monthlyInr;
+    let rhCashout = 0;
+
+    // Robinhood cash out in month 8-10
+    if (m >= 7 && m <= 9) { rhCashout = Math.round(robinhoodInr / 3); available += rhCashout; }
+
+    let toDebt = 0, toGold = 0;
+
+    if (debt > 0) {
+      toDebt = Math.min(available, debt);
+      debt -= toDebt;
+      available -= toDebt;
+    }
+    if (available > 0 && gold < GOLD_TARGET) {
+      toGold = Math.min(available, GOLD_TARGET - gold);
+      gold += toGold;
+    }
+
+    months.push({ month: m + 1, label, toDebt, toGold, debtLeft: debt, goldTotal: gold, rh: rhCashout });
+  }
+
+  const container = document.getElementById('timelineContent');
+  container.innerHTML = `<div class="card" style="padding:0;max-height:500px;overflow-y:auto;">
+    <table>
+      <thead><tr><th>#</th><th>Month</th><th>→ Debt</th><th>→ Gold</th><th>Debt Left</th><th>Gold Total</th><th>Note</th></tr></thead>
+      <tbody>${months.map(m => {
+        const debtDone = m.debtLeft === 0 && m.toDebt > 0;
+        const goldDone = m.goldTotal >= GOLD_TARGET;
+        return `<tr style="${debtDone ? 'background:var(--gd);' : goldDone ? 'background:var(--yd);' : ''}">
+          <td>${m.month}</td>
+          <td style="font-weight:600;">${m.label}</td>
+          <td class="pos">${m.toDebt > 0 ? '₹' + lf(m.toDebt) : '—'}</td>
+          <td class="gld">${m.toGold > 0 ? '₹' + lf(m.toGold) : '—'}</td>
+          <td>${m.debtLeft > 0 ? '₹' + lf(m.debtLeft) : '<span class="pos">CLEARED</span>'}</td>
+          <td>₹${lf(m.goldTotal)}</td>
+          <td style="color:var(--muted);font-size:10px;">${m.rh > 0 ? 'RH: ₹' + lf(m.rh) : ''}${debtDone ? ' DEBT FREE!' : ''}${goldDone ? ' GOLD DONE!' : ''}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+function calcGold() {
+  const budget = parseFloat(document.getElementById('goldBudget')?.value) || 5000000;
+  const rate24 = parseFloat(document.getElementById('gold24k')?.value) || 9200;
+  const rate22 = parseFloat(document.getElementById('gold22k')?.value) || 8430;
+  const making = parseFloat(document.getElementById('goldMaking')?.value) || 12;
+  const waste = parseFloat(document.getElementById('goldWaste')?.value) || 3;
+  const gst = parseFloat(document.getElementById('goldGst')?.value) || 3;
+
+  // 24K Bars
+  const bar24Total = rate24 * (1 + gst / 100);
+  const bars24Grams = Math.floor(budget / bar24Total);
+
+  // 22K Jewellery
+  const jewMaking = rate22 * making / 100;
+  const jewWaste = rate22 * waste / 100;
+  const jewGstGold = rate22 * gst / 100;
+  const jewGstMaking = jewMaking * 5 / 100;
+  const jewTotal = rate22 + jewMaking + jewWaste + jewGstGold + jewGstMaking;
+  const jewGrams = Math.floor(budget / jewTotal);
+
+  const result = document.getElementById('goldResult');
+  result.innerHTML = `
+    <div class="lbl">Results for ₹${(budget/100000).toFixed(0)} Lakhs</div>
+    <div style="margin-top:8px;">
+      <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:6px;">24K Gold Bars</div>
+      <div class="gold-info">
+        <div class="gold-row"><span class="gl">Rate/gram</span><span class="gv">₹${rate24.toLocaleString('en-IN')}</span></div>
+        <div class="gold-row"><span class="gl">GST ${gst}%</span><span class="gv">₹${Math.round(rate24*gst/100).toLocaleString('en-IN')}</span></div>
+        <div class="gold-row"><span class="gl">Total/gram</span><span class="gv">₹${Math.round(bar24Total).toLocaleString('en-IN')}</span></div>
+        <div class="gold-row"><span class="gl">Grams</span><span class="gv" style="color:var(--gold);font-size:16px;">${bars24Grams}g</span></div>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:6px;">22K Jewellery</div>
+      <div class="gold-info">
+        <div class="gold-row"><span class="gl">Rate/gram</span><span class="gv">₹${rate22.toLocaleString('en-IN')}</span></div>
+        <div class="gold-row"><span class="gl">Making ${making}%</span><span class="gv">₹${Math.round(jewMaking).toLocaleString('en-IN')}</span></div>
+        <div class="gold-row"><span class="gl">Wastage ${waste}%</span><span class="gv">₹${Math.round(jewWaste).toLocaleString('en-IN')}</span></div>
+        <div class="gold-row"><span class="gl">GST</span><span class="gv">₹${Math.round(jewGstGold+jewGstMaking).toLocaleString('en-IN')}</span></div>
+        <div class="gold-row"><span class="gl">Total/gram</span><span class="gv">₹${Math.round(jewTotal).toLocaleString('en-IN')}</span></div>
+        <div class="gold-row"><span class="gl">Grams</span><span class="gv" style="color:var(--gold);font-size:16px;">${jewGrams}g</span></div>
+      </div>
+    </div>
+    <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--sub);">
+      <b style="color:var(--gold);">Save ${bars24Grams - jewGrams}g</b> by buying 24K bars and converting to jewellery
+    </div>
+  `;
+}
+
+function renderHistory() {
+  const byMonth = {};
+  payments.forEach(p => {
+    const m = p.date.slice(0, 7);
+    if (!byMonth[m]) byMonth[m] = { debt: 0, gold: 0, total: 0 };
+    if (p.cat === 'debt') byMonth[m].debt += p.inr;
+    else if (p.cat === 'gold') byMonth[m].gold += p.inr;
+    byMonth[m].total += p.inr;
+  });
+
+  const sorted = Object.entries(byMonth).sort((a, b) => a[0].localeCompare(b[0]));
+  const body = document.getElementById('histBody');
+  if (sorted.length === 0) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">History appears as you log payments.</td></tr>';
+    return;
+  }
+
+  let runDebt = 0, runGold = 0;
+  body.innerHTML = sorted.map(([m, d]) => {
+    runDebt += d.debt;
+    runGold += d.gold;
+    return `<tr>
+      <td style="font-weight:600;">${m}</td>
+      <td class="pos">₹${lf(d.debt)}</td>
+      <td class="gld">₹${lf(d.gold)}</td>
+      <td style="font-weight:600;">₹${lf(d.total)}</td>
+      <td>${runDebt >= DEBT_TARGET ? '<span class="pos">CLEARED</span>' : '₹' + lf(DEBT_TARGET - runDebt)}</td>
+      <td>₹${lf(GOLD_TARGET - runGold)}</td>
+    </tr>`;
+  }).join('');
+
+  // Summary cards
+  const totalDebt = payments.filter(p => p.cat === 'debt').reduce((s, p) => s + p.inr, 0);
+  const totalGold = payments.filter(p => p.cat === 'gold').reduce((s, p) => s + p.inr, 0);
+  document.getElementById('historySummary').innerHTML = `
+    <div class="card c"><div class="lbl">Total to Debt</div><div class="val pos" style="font-size:16px;">₹${lf(totalDebt)}</div></div>
+    <div class="card c"><div class="lbl">Total to Gold</div><div class="val gld" style="font-size:16px;">₹${lf(totalGold)}</div></div>
+    <div class="card c"><div class="lbl">Grand Total</div><div class="val" style="font-size:16px;">₹${lf(totalDebt + totalGold)}</div></div>
+  `;
+}
+
+// Helpers
+function lf(n) { return n >= 10000000 ? (n/10000000).toFixed(2) + ' Cr' : n >= 100000 ? (n/100000).toFixed(1) + 'L' : n.toLocaleString('en-IN'); }
+function fmtDate(d) { const [y,m,dd] = d.split('-'); return `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]} ${parseInt(dd)}, ${y}`; }
+
+function showTab(id, btn) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+render();
+</script>
+</body>
+</html>
