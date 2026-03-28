@@ -83,7 +83,7 @@ td{padding:6px 8px;border-bottom:1px solid rgba(42,53,80,0.2);}
 <div class="mx">
 
 <h1>Financial <span>Freedom</span> Tracker</h1>
-<p class="sub-h">Goal: Clear ₹50L debt + Buy ₹50L gold = ₹1 Crore in 20 months</p>
+<p class="sub-h">Goal: Clear ₹50L debt + Buy ₹50L gold = ₹1 Crore in ~18 months</p>
 
 <!-- ══ OVERALL PROGRESS ══ -->
 <div class="prg">
@@ -200,13 +200,16 @@ td{padding:6px 8px;border-bottom:1px solid rgba(42,53,80,0.2);}
     <div class="form-row">
       <div class="ff" style="flex:1;"><label>Rent</label><input type="number" id="bRent" value="1525" onchange="updateBudget()" /></div>
       <div class="ff" style="flex:1;"><label>Car EMI</label><input type="number" id="bCar" value="587" onchange="updateBudget()" /></div>
-      <div class="ff" style="flex:1;"><label>Food</label><input type="number" id="bFood" value="350" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Food</label><input type="number" id="bFood" value="225" onchange="updateBudget()" /></div>
       <div class="ff" style="flex:1;"><label>Utilities</label><input type="number" id="bUtil" value="100" onchange="updateBudget()" /></div>
     </div>
     <div class="form-row">
       <div class="ff" style="flex:1;"><label>Trips/Shopping (annual)</label><input type="number" id="bTrips" value="6000" onchange="updateBudget()" /></div>
       <div class="ff" style="flex:1;"><label>Personal/Misc</label><input type="number" id="bMisc" value="100" onchange="updateBudget()" /></div>
       <div class="ff" style="flex:1;"><label>Income</label><input type="number" id="bIncome" value="7400" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Starting Savings</label><input type="number" id="bStartSavings" value="10000" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>Robinhood Cash Out</label><input type="number" id="bRobinhood" value="25000" onchange="updateBudget()" /></div>
+      <div class="ff" style="flex:1;"><label>RH Cash Out Month</label><input type="number" id="bRhMonth" value="8" min="1" max="24" onchange="updateBudget()" /></div>
     </div>
   </div>
 </div>
@@ -452,11 +455,14 @@ function renderBudget() {
 function updateBudget() { render(); }
 
 function renderTimeline() {
-  const savings = parseFloat(document.getElementById('savTotal')?.textContent?.replace(/[$,]/g, '')) || 4238;
+  const savings = parseFloat(document.getElementById('savTotal')?.textContent?.replace(/[$,]/g, '')) || 4363;
   const rate = 85;
   const monthlyInr = Math.round(savings * rate);
-  const robinhood = 25000;
-  const robinhoodInr = robinhood * rate;
+  const startSavings = parseFloat(document.getElementById('bStartSavings')?.value) || 10000;
+  const startInr = Math.round(startSavings * rate);
+  const robinhood = parseFloat(document.getElementById('bRobinhood')?.value) || 25000;
+  const robinhoodInr = Math.round(robinhood * rate);
+  const rhMonth = parseInt(document.getElementById('bRhMonth')?.value) || 8;
 
   let debt = DEBT_TARGET;
   let gold = 0;
@@ -469,10 +475,17 @@ function renderTimeline() {
     const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
 
     let available = monthlyInr;
-    let rhCashout = 0;
+    let note = '';
 
-    // Robinhood cash out in month 8-10
-    if (m >= 7 && m <= 9) { rhCashout = Math.round(robinhoodInr / 3); available += rhCashout; }
+    // Month 1: add starting savings
+    if (m === 0) { available += startInr; note = 'Savings: ₹' + lf(startInr); }
+
+    // Robinhood cash out spread over 3 months
+    let rhCashout = 0;
+    if (m >= rhMonth - 1 && m <= rhMonth + 1) {
+      rhCashout = Math.round(robinhoodInr / 3);
+      available += rhCashout;
+    }
 
     let toDebt = 0, toGold = 0;
 
@@ -486,7 +499,9 @@ function renderTimeline() {
       gold += toGold;
     }
 
-    months.push({ month: m + 1, label, toDebt, toGold, debtLeft: debt, goldTotal: gold, rh: rhCashout });
+    if (rhCashout > 0) note = (note ? note + ' + ' : '') + 'RH: ₹' + lf(rhCashout);
+
+    months.push({ month: m + 1, label, toDebt, toGold, debtLeft: debt, goldTotal: gold, rh: rhCashout, note });
   }
 
   const container = document.getElementById('timelineContent');
@@ -503,7 +518,7 @@ function renderTimeline() {
           <td class="gld">${m.toGold > 0 ? '₹' + lf(m.toGold) : '—'}</td>
           <td>${m.debtLeft > 0 ? '₹' + lf(m.debtLeft) : '<span class="pos">CLEARED</span>'}</td>
           <td>₹${lf(m.goldTotal)}</td>
-          <td style="color:var(--muted);font-size:10px;">${m.rh > 0 ? 'RH: ₹' + lf(m.rh) : ''}${debtDone ? ' DEBT FREE!' : ''}${goldDone ? ' GOLD DONE!' : ''}</td>
+          <td style="color:var(--muted);font-size:10px;">${m.note || ''}${debtDone ? ' <b style="color:var(--green);">DEBT FREE!</b>' : ''}${goldDone ? ' <b style="color:var(--gold);">GOLD DONE!</b>' : ''}</td>
         </tr>`;
       }).join('')}</tbody>
     </table>
