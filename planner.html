@@ -103,7 +103,8 @@ td{padding:4px 6px;border-bottom:1px solid rgba(42,53,80,0.2);}
 
 <!-- ══ TABS ══ -->
 <div class="tabs">
-  <button class="tab active" onclick="showTab('plan',this)">The Plan</button>
+  <button class="tab active" onclick="showTab('monthly',this)">Monthly Tracker</button>
+  <button class="tab" onclick="showTab('plan',this)">The Plan</button>
   <button class="tab" onclick="showTab('budget',this)">Budget</button>
   <button class="tab" onclick="showTab('boosters',this)">Gap Closers</button>
   <button class="tab" onclick="showTab('timeline',this)">Timeline</button>
@@ -112,8 +113,106 @@ td{padding:4px 6px;border-bottom:1px solid rgba(42,53,80,0.2);}
   <button class="tab" onclick="showTab('rules',this)">Rules</button>
 </div>
 
+<!-- ══ MONTHLY TRACKER ══ -->
+<div class="pane active" id="monthly">
+
+  <!-- Month navigator -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <button class="tab" onclick="changeTrackMonth(-1)">&larr;</button>
+    <span style="font-size:14px;font-weight:700;" id="trackMonthLabel">April 2026</span>
+    <button class="tab" onclick="changeTrackMonth(1)">&rarr;</button>
+  </div>
+
+  <!-- Income section -->
+  <div class="card" style="margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="lbl" style="margin:0;">Income This Month</div>
+      <span class="pos" style="font-weight:700;font-size:14px;" id="trackIncomeTotal">$0</span>
+    </div>
+    <div id="trackIncomeList" style="margin-top:4px;"></div>
+    <div style="margin-top:6px;display:flex;gap:6px;align-items:flex-end;">
+      <div class="ff" style="flex:0.6;"><label>Date</label><input type="date" id="incDate" /></div>
+      <div class="ff" style="flex:0.5;"><label>Amount</label><input type="number" id="incAmt" placeholder="3500" /></div>
+      <div class="ff" style="flex:1;"><label>Source</label>
+        <select id="incSource">
+          <option value="salary_15">Salary (15th)</option>
+          <option value="salary_30">Salary (30th)</option>
+          <option value="options">Options Profit</option>
+          <option value="bonus">Bonus/Refund</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <button class="tab" style="padding:7px 14px;background:var(--gd);border-color:var(--green);color:var(--green);" onclick="addIncome()">+</button>
+    </div>
+  </div>
+
+  <!-- Quick expense add -->
+  <div class="card" style="margin-bottom:8px;border-color:rgba(255,80,0,0.3);">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="lbl" style="margin:0;">Log Expense</div>
+      <span class="neg" style="font-weight:700;font-size:14px;" id="trackExpTotal">$0</span>
+    </div>
+    <div style="margin-top:6px;display:flex;gap:6px;align-items:flex-end;">
+      <div class="ff" style="flex:0.6;"><label>Date</label><input type="date" id="tExpDate" /></div>
+      <div class="ff" style="flex:0.5;"><label>Amount</label><input type="number" id="tExpAmt" placeholder="25" step="0.01" /></div>
+      <div class="ff" style="flex:0.8;">
+        <label>Category</label>
+        <select id="tExpCat">
+          <option value="rent">Rent</option>
+          <option value="car">Car EMI</option>
+          <option value="utility">Utilities/Water</option>
+          <option value="wifi">Wifi</option>
+          <option value="grocery">Food/Grocery</option>
+          <option value="outside">Outside Food</option>
+          <option value="gas">Gas</option>
+          <option value="personal">Personal</option>
+          <option value="trips">Trips</option>
+          <option value="family">Family Shopping</option>
+          <option value="sip">SIP Investment</option>
+          <option value="debt">→ Debt Payment</option>
+          <option value="gold">→ Gold Purchase</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:6px;display:flex;gap:6px;align-items:flex-end;">
+      <div class="ff" style="flex:1;"><label>What</label><input type="text" id="tExpWhat" placeholder="HEB groceries, rent, Wise transfer..." /></div>
+      <button class="tab" style="padding:7px 14px;background:var(--rd);border-color:var(--red);color:var(--red);" onclick="addTrackExp()">+</button>
+    </div>
+  </div>
+
+  <!-- Month summary -->
+  <div class="grid g4" id="trackSummaryCards"></div>
+
+  <!-- Budget vs Actual -->
+  <div class="card" style="margin-bottom:8px;">
+    <div class="lbl">Budget vs Actual</div>
+    <div id="trackBudgetVsActual"></div>
+  </div>
+
+  <!-- Goal progress this month -->
+  <div class="card" style="margin-bottom:8px;">
+    <div class="lbl">Goals This Month</div>
+    <div id="trackGoals"></div>
+  </div>
+
+  <!-- Transaction list -->
+  <div class="card" style="padding:0;max-height:300px;overflow-y:auto;">
+    <table>
+      <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>What</th><th>Amount</th><th></th></tr></thead>
+      <tbody id="trackTxnBody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px;">No transactions yet. Log income and expenses above.</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Past months summary -->
+  <div class="card" style="margin-top:8px;">
+    <div class="lbl">Month-over-Month</div>
+    <div id="trackPastMonths"></div>
+  </div>
+</div>
+
 <!-- ══ THE PLAN ══ -->
-<div class="pane active" id="plan">
+<div class="pane" id="plan">
   <div class="card" style="border-color:var(--gold);">
     <div class="lbl" style="color:var(--gold);">18-Month Parallel Plan</div>
     <div style="font-size:11px;color:var(--sub);margin-top:4px;line-height:1.6;">
@@ -434,6 +533,237 @@ const OPTIONS = 750;
 const UPFRONT = 3800;
 const RH = 30000;
 
+// ═══════════════════════════════════════
+// MONTHLY TRACKER
+// ═══════════════════════════════════════
+const TXN_KEY = 'planner_txns';
+function loadTxns() { try { return JSON.parse(localStorage.getItem(TXN_KEY)) || []; } catch(e) { return []; } }
+function saveTxns(d) { localStorage.setItem(TXN_KEY, JSON.stringify(d)); }
+let txns = loadTxns();
+
+let trackMonth = new Date().getMonth();
+let trackYear = new Date().getFullYear();
+// Start from April 2026 if before that
+if (trackYear < 2026 || (trackYear === 2026 && trackMonth < 3)) { trackMonth = 3; trackYear = 2026; }
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const BUDGET = {
+  rent:1555, car:600, utility:100, wifi:55, grocery:400, outside:100,
+  gas:40, personal:15, trips:400, family:175, sip:300, debt:0, gold:0, other:50
+};
+
+const CAT_NAMES = {
+  rent:'Rent',car:'Car EMI',utility:'Utilities',wifi:'Wifi',grocery:'Food/Grocery',
+  outside:'Outside Food',gas:'Gas',personal:'Personal',trips:'Trips',family:'Family Shop',
+  sip:'SIP',debt:'Debt Payment',gold:'Gold Purchase',other:'Other',
+  salary_15:'Salary (15th)',salary_30:'Salary (30th)',options:'Options',bonus:'Bonus/Refund'
+};
+
+const CAT_COLORS = {
+  rent:'#ef4444',car:'var(--purple)',utility:'var(--blue)',wifi:'var(--cyan)',grocery:'var(--green)',
+  outside:'var(--gold)',gas:'var(--muted)',personal:'var(--sub)',trips:'#f97316',family:'var(--cyan)',
+  sip:'var(--blue)',debt:'var(--green)',gold:'var(--gold)',other:'var(--muted)'
+};
+
+// Set default dates
+document.getElementById('incDate').valueAsDate = new Date();
+document.getElementById('tExpDate').valueAsDate = new Date();
+
+function changeTrackMonth(d) {
+  trackMonth += d;
+  if (trackMonth > 11) { trackMonth = 0; trackYear++; }
+  if (trackMonth < 0) { trackMonth = 11; trackYear--; }
+  renderMonthly();
+}
+
+function addIncome() {
+  const date = document.getElementById('incDate').value;
+  const amt = parseFloat(document.getElementById('incAmt').value);
+  const src = document.getElementById('incSource').value;
+  if (!date || isNaN(amt) || amt <= 0) { alert('Enter date and amount.'); return; }
+  txns.push({ id: Date.now(), date, type: 'income', cat: src, what: CAT_NAMES[src] || src, amt: Math.round(amt*100)/100 });
+  txns.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+  saveTxns(txns);
+  document.getElementById('incAmt').value = '';
+  renderMonthly();
+}
+
+function addTrackExp() {
+  const date = document.getElementById('tExpDate').value;
+  const amt = parseFloat(document.getElementById('tExpAmt').value);
+  const cat = document.getElementById('tExpCat').value;
+  const what = document.getElementById('tExpWhat').value.trim();
+  if (!date || isNaN(amt) || amt <= 0) { alert('Enter date and amount.'); return; }
+  txns.push({ id: Date.now(), date, type: 'expense', cat, what: what || CAT_NAMES[cat], amt: Math.round(amt*100)/100 });
+  txns.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+  saveTxns(txns);
+  document.getElementById('tExpAmt').value = '';
+  document.getElementById('tExpWhat').value = '';
+  renderMonthly();
+}
+
+function delTxn(id) {
+  if (!confirm('Delete?')) return;
+  txns = txns.filter(t => t.id !== id);
+  saveTxns(txns);
+  renderMonthly();
+}
+
+function renderMonthly() {
+  const ms = `${trackYear}-${String(trackMonth+1).padStart(2,'0')}`;
+  document.getElementById('trackMonthLabel').textContent = `${MONTH_NAMES[trackMonth]} ${trackYear}`;
+
+  const monthTxns = txns.filter(t => t.date.startsWith(ms));
+  const incomes = monthTxns.filter(t => t.type === 'income');
+  const expenses = monthTxns.filter(t => t.type === 'expense');
+
+  const totalInc = incomes.reduce((s,t) => s+t.amt, 0);
+  const totalExp = expenses.reduce((s,t) => s+t.amt, 0);
+  const toGoals = expenses.filter(t => t.cat === 'debt' || t.cat === 'gold' || t.cat === 'sip').reduce((s,t) => s+t.amt, 0);
+  const livingExp = totalExp - toGoals;
+  const remaining = totalInc - totalExp;
+
+  document.getElementById('trackIncomeTotal').textContent = '$' + totalInc.toLocaleString();
+  document.getElementById('trackExpTotal').textContent = '-$' + totalExp.toLocaleString();
+
+  // Income list
+  const incList = document.getElementById('trackIncomeList');
+  if (incomes.length === 0) {
+    // Show expected paychecks
+    incList.innerHTML = `<div style="font-size:10px;color:var(--muted);">
+      Expected: <span style="color:var(--green);">$3,500 on 15th</span> + <span style="color:var(--green);">$3,500 on 30th</span> = $7,000
+    </div>`;
+  } else {
+    incList.innerHTML = incomes.map(t =>
+      `<div class="row"><span class="n">${t.what} · ${t.date.slice(8)}</span><span class="v pos">+$${t.amt.toLocaleString()}</span></div>`
+    ).join('');
+  }
+
+  // Summary cards
+  const cards = document.getElementById('trackSummaryCards');
+  const budgetLiving = BUDGET.rent + BUDGET.car + BUDGET.utility + BUDGET.wifi + BUDGET.grocery + BUDGET.outside + BUDGET.gas + BUDGET.personal + BUDGET.trips + BUDGET.family;
+  cards.innerHTML = `
+    <div class="card c"><div class="lbl">Income</div><div class="val pos" style="font-size:15px;">$${totalInc.toLocaleString()}</div><div class="sm">of $7,000 expected</div></div>
+    <div class="card c"><div class="lbl">Living Spent</div><div class="val ${livingExp>budgetLiving?'neg':''}" style="font-size:15px;">$${livingExp.toLocaleString()}</div><div class="sm">budget: $${budgetLiving.toLocaleString()}</div></div>
+    <div class="card c"><div class="lbl">To Goals</div><div class="val gld" style="font-size:15px;">$${toGoals.toLocaleString()}</div><div class="sm">debt+gold+SIP</div></div>
+    <div class="card c"><div class="lbl">Remaining</div><div class="val ${remaining>=0?'pos':'neg'}" style="font-size:15px;">$${remaining.toLocaleString()}</div><div class="sm">${remaining>=0?'available':'overspent!'}</div></div>
+  `;
+
+  // Budget vs Actual
+  const bva = document.getElementById('trackBudgetVsActual');
+  const expByCat = {};
+  expenses.forEach(t => { expByCat[t.cat] = (expByCat[t.cat]||0) + t.amt; });
+
+  const livingCats = ['rent','car','utility','wifi','grocery','outside','gas','personal','trips','family'];
+  bva.innerHTML = livingCats.map(cat => {
+    const budg = BUDGET[cat] || 0;
+    const actual = expByCat[cat] || 0;
+    const pct = budg > 0 ? Math.min(100, actual/budg*100) : (actual > 0 ? 100 : 0);
+    const over = actual > budg && budg > 0;
+    const color = over ? 'var(--red)' : pct > 80 ? 'var(--gold)' : 'var(--green)';
+    return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid rgba(42,53,80,0.12);font-size:10px;">
+      <span style="width:80px;color:var(--sub);">${CAT_NAMES[cat]||cat}</span>
+      <div style="flex:1;height:5px;background:var(--input);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;"></div>
+      </div>
+      <span style="width:50px;text-align:right;font-weight:600;color:${color};">$${actual.toFixed(0)}</span>
+      <span style="width:40px;text-align:right;color:var(--muted);">/$${budg}</span>
+      <span style="width:45px;text-align:right;font-size:9px;color:${over?'var(--red)':'var(--muted)'};">${over?'-$'+(actual-budg).toFixed(0):'$'+(budg-actual).toFixed(0)+' left'}</span>
+    </div>`;
+  }).join('');
+
+  // Goals this month
+  const goals = document.getElementById('trackGoals');
+  const debtPaid = expByCat['debt'] || 0;
+  const goldPaid = expByCat['gold'] || 0;
+  const sipPaid = expByCat['sip'] || 0;
+  const monthNum = (trackYear - 2026) * 12 + trackMonth - 3 + 1; // month # in plan
+  const isDebtPhase = monthNum <= 10;
+  const debtTarget = isDebtPhase ? Math.round((MONTHLY_TO_GOALS * 0.7 + OPTIONS) ) : 0;
+  const goldTarget = isDebtPhase ? Math.round(MONTHLY_TO_GOALS * 0.3) : Math.round(MONTHLY_TO_GOALS + OPTIONS);
+  const sipTarget = 300;
+
+  goals.innerHTML = `
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <div style="flex:1;text-align:center;padding:6px;background:var(--input);border-radius:6px;">
+        <div style="font-size:8px;color:var(--muted);">DEBT</div>
+        <div style="font-size:16px;font-weight:700;color:${debtPaid>=debtTarget&&debtTarget>0?'var(--green)':'var(--sub)'};">$${debtPaid.toLocaleString()}</div>
+        <div style="font-size:9px;color:var(--muted);">target: $${debtTarget.toLocaleString()}</div>
+        <div class="prg"><div class="prg-f" style="width:${debtTarget>0?Math.min(100,debtPaid/debtTarget*100):0}%;background:var(--green);"></div></div>
+      </div>
+      <div style="flex:1;text-align:center;padding:6px;background:var(--input);border-radius:6px;">
+        <div style="font-size:8px;color:var(--muted);">GOLD</div>
+        <div style="font-size:16px;font-weight:700;color:${goldPaid>=goldTarget?'var(--gold)':'var(--sub)'};">$${goldPaid.toLocaleString()}</div>
+        <div style="font-size:9px;color:var(--muted);">target: $${goldTarget.toLocaleString()}</div>
+        <div class="prg"><div class="prg-f" style="width:${goldTarget>0?Math.min(100,goldPaid/goldTarget*100):0}%;background:var(--gold);"></div></div>
+      </div>
+      <div style="flex:1;text-align:center;padding:6px;background:var(--input);border-radius:6px;">
+        <div style="font-size:8px;color:var(--muted);">SIP</div>
+        <div style="font-size:16px;font-weight:700;color:${sipPaid>=sipTarget?'var(--blue)':'var(--sub)'};">$${sipPaid.toLocaleString()}</div>
+        <div style="font-size:9px;color:var(--muted);">target: $${sipTarget}</div>
+        <div class="prg"><div class="prg-f" style="width:${Math.min(100,sipPaid/sipTarget*100)}%;background:var(--blue);"></div></div>
+      </div>
+    </div>
+    <div style="font-size:9px;color:var(--muted);margin-top:4px;text-align:center;">
+      Month ${monthNum > 0 ? monthNum : '—'} of 18 | ${isDebtPhase ? 'Phase 1: Debt 70% + Gold 30%' : monthNum <= 18 ? 'Phase 2: 100% Gold' : 'Phase 3: Full Investments'}
+    </div>
+  `;
+
+  // Transaction list
+  const body = document.getElementById('trackTxnBody');
+  const allMonthTxns = [...monthTxns].sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id);
+  if (allMonthTxns.length === 0) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px;">No transactions yet.</td></tr>';
+  } else {
+    body.innerHTML = allMonthTxns.map(t => {
+      const isInc = t.type === 'income';
+      return `<tr>
+        <td style="color:var(--sub);">${t.date.slice(5)}</td>
+        <td><span class="badge ${isInc?'bg':'br'}">${isInc?'IN':'OUT'}</span></td>
+        <td style="font-size:9px;">${CAT_NAMES[t.cat]||t.cat}</td>
+        <td style="color:var(--sub);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.what||''}</td>
+        <td style="font-weight:700;" class="${isInc?'pos':'neg'}">${isInc?'+':'-'}$${t.amt.toLocaleString()}</td>
+        <td><button onclick="delTxn(${t.id})" style="background:var(--rd);color:var(--red);border:none;border-radius:4px;padding:2px 6px;font-size:9px;cursor:pointer;">x</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Past months summary
+  const past = document.getElementById('trackPastMonths');
+  const allMonths = {};
+  txns.forEach(t => {
+    const m = t.date.slice(0,7);
+    if (!allMonths[m]) allMonths[m] = {inc:0, exp:0, goals:0};
+    if (t.type === 'income') allMonths[m].inc += t.amt;
+    else {
+      allMonths[m].exp += t.amt;
+      if (t.cat==='debt'||t.cat==='gold'||t.cat==='sip') allMonths[m].goals += t.amt;
+    }
+  });
+  const sortedMonths = Object.entries(allMonths).sort((a,b) => b[0].localeCompare(a[0]));
+  if (sortedMonths.length <= 1) {
+    past.innerHTML = '<div style="font-size:10px;color:var(--muted);">History will appear after your first full month.</div>';
+  } else {
+    past.innerHTML = sortedMonths.map(([m, d]) => {
+      const saved = d.inc - d.exp;
+      const living = d.exp - d.goals;
+      return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(42,53,80,0.12);font-size:10px;">
+        <span style="width:60px;font-weight:600;">${m}</span>
+        <span class="pos" style="width:55px;">+$${d.inc.toLocaleString()}</span>
+        <span class="neg" style="width:55px;">-$${living.toLocaleString()}</span>
+        <span class="gld" style="width:55px;">→$${d.goals.toLocaleString()}</span>
+        <span style="width:55px;font-weight:700;color:${saved>=0?'var(--green)':'var(--red)'};">${saved>=0?'+':'-'}$${Math.abs(saved).toLocaleString()}</span>
+        <span style="flex:1;">
+          <div style="height:4px;background:var(--input);border-radius:2px;overflow:hidden;">
+            <div style="height:100%;width:${d.inc>0?Math.min(100,d.goals/d.inc*100):0}%;background:var(--gold);border-radius:2px;"></div>
+          </div>
+        </span>
+      </div>`;
+    }).join('');
+  }
+}
+
 function renderTimeline() {
   let debt = DEBT, gold = 0;
   const rows = [];
@@ -506,6 +836,7 @@ function lf(n){return n>=10000000?(n/10000000).toFixed(1)+'Cr':n>=100000?(n/1000
 function showTab(id,btn){document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');}
 
 renderTimeline();
+renderMonthly();
 </script>
 </body>
 </html>
