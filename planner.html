@@ -64,8 +64,8 @@ td{padding:4px 6px;border-bottom:1px solid rgba(42,53,80,0.2);}
 <!-- ══ NET WORTH ══ -->
 <div class="grid g5">
   <div class="card c"><div class="lbl">Assets</div><div class="val" style="font-size:14px;">$34,800</div><div class="sm">Cash + Stocks</div></div>
-  <div class="card c"><div class="lbl">Debts</div><div class="val neg" style="font-size:14px;">-$94,800</div><div class="sm">₹50L + Car loan</div></div>
-  <div class="card c"><div class="lbl">Net Worth</div><div class="val neg" style="font-size:14px;">-$60,000</div></div>
+  <div class="card c"><div class="lbl">Debts</div><div class="val neg" style="font-size:14px;">-$58,800</div><div class="sm">₹50L family</div></div>
+  <div class="card c"><div class="lbl">Net Worth</div><div class="val neg" style="font-size:14px;">-$24,000</div></div>
   <div class="card c"><div class="lbl">Monthly Free</div><div class="val gld" style="font-size:14px;">$3,302</div><div class="sm">For goals</div></div>
   <div class="card c"><div class="lbl">Savings Rate</div><div class="val pos" style="font-size:14px;">47%</div></div>
 </div>
@@ -435,7 +435,7 @@ function getRent(y,m) {
 // ═══ ALLOCATION BAR ═══
 function renderAlloc() {
   const items = [
-    {l:'Rent',a:1555,c:'#ef4444'},{l:'Car',a:600,c:'var(--purple)'},{l:'Util+Wifi',a:155,c:'var(--blue)'},
+    {l:'Rent',a:1555,c:'#ef4444'},{l:'Car EMI',a:600,c:'var(--purple)'},{l:'Util+Wifi',a:155,c:'var(--blue)'},
     {l:'Food',a:500,c:'var(--green)'},{l:'Gas+Personal',a:55,c:'var(--muted)'},{l:'Trips',a:583,c:'#f97316'},
     {l:'Family Shop',a:250,c:'var(--cyan)'},{l:'SIP',a:300,c:'var(--blue)'},{l:'→ Debt/Gold',a:3002,c:'var(--gold)'},
   ];
@@ -527,11 +527,8 @@ function renderSipGrowth() {
 function renderNW() {
   const body = document.getElementById('nwTable');
   const years = [1,2,3,5,10];
-  const carLoan = 36000;
-
   body.innerHTML = years.map(y => {
     const m = y * 12;
-    // SIP: $300/mo for 24 months, then $3500/mo
     let portfolio;
     if (m <= 24) {
       portfolio = fv(300, 0.10/12, m);
@@ -540,9 +537,8 @@ function renderNW() {
     }
     const options = OPTIONS_AVG * m;
     const debtPaid = m >= 10 ? 'CLEARED' : `₹${lf(Math.max(0,DEBT - (TO_GOALS*RATE*Math.min(m,10) + UPFRONT*RATE + (m>=8?RH_CASHOUT*RATE:0))))}`;
-    const carRemain = Math.max(0, carLoan - 600*m);
     const emergSav = 9000;
-    const nw = portfolio + options + emergSav - (m >= 10 ? 0 : 58800) - carRemain;
+    const nw = portfolio + options + emergSav - (m >= 10 ? 0 : 58800);
 
     return `<tr>
       <td style="font-weight:600;">Year ${y}</td>
