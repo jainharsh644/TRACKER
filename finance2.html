@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0e1a">
+<title>Finance Planner — Dec 2026 Goals</title>
+<style>
+:root{--bg:#0a0e1a;--card:#1a2235;--border:#2a3550;--input:#0f1629;--green:#00c805;--gd:rgba(0,200,5,0.1);--red:#ff5000;--rd:rgba(255,80,0,0.1);--gold:#fec925;--yd:rgba(254,201,37,0.12);--blue:#3b82f6;--bd:rgba(59,130,246,0.1);--purple:#a855f7;--pd:rgba(168,85,247,0.1);--cyan:#06b6d4;--text:#e2e8f0;--sub:#94a3b8;--muted:#64748b;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.mx{max-width:960px;margin:0 auto;padding:10px;}
+h1{font-size:20px;font-weight:700;text-align:center;}h1 span{color:var(--gold);}
+.sh{text-align:center;font-size:10px;color:var(--muted);margin-bottom:10px;}
+.grid{display:grid;gap:8px;margin-bottom:10px;}
+.g2{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:repeat(3,1fr);}.g4{grid-template-columns:repeat(4,1fr);}.g5{grid-template-columns:repeat(5,1fr);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px;}
+.card.c{text-align:center;}
+.lbl{font-size:8px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);font-weight:600;margin-bottom:3px;}
+.val{font-size:17px;font-weight:700;}.sm{font-size:9px;color:var(--sub);margin-top:2px;}
+.pos{color:var(--green);}.neg{color:var(--red);}.gld{color:var(--gold);}
+.sec{margin-bottom:12px;}
+.sec-t{font-size:12px;font-weight:700;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;}
+.bg{background:var(--gd);color:var(--green);}.br{background:var(--rd);color:var(--red);}.by{background:var(--yd);color:var(--gold);}.bb{background:var(--bd);color:var(--blue);}.bp{background:var(--pd);color:var(--purple);}
+.tabs{display:flex;gap:4px;margin-bottom:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab{padding:6px 12px;border-radius:6px;font-size:11px;border:1px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+.tab:hover{border-color:var(--gold);color:var(--gold);}
+.tab.active{background:var(--yd);border-color:var(--gold);color:var(--gold);}
+.pane{display:none;}.pane.active{display:block;}
+.prg{height:8px;background:var(--input);border-radius:4px;overflow:hidden;margin-top:4px;}
+.prg-f{height:100%;border-radius:4px;transition:width 0.4s;}
+.row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(42,53,80,0.15);font-size:11px;}
+.row:last-child{border-bottom:none;}
+.row .n{color:var(--sub);flex:1;}.row .v{font-weight:600;text-align:right;}
+.ff{display:flex;flex-direction:column;gap:2px;}
+.ff label{font-size:8px;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);font-weight:600;}
+.ff input,.ff select{background:var(--input);border:1px solid var(--border);border-radius:5px;padding:7px 8px;color:var(--text);font-size:13px;outline:none;-webkit-appearance:none;font-family:inherit;}
+.ff input:focus,.ff select:focus{border-color:var(--gold);}
+.ff select option{background:var(--card);}
+.fr{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
+.btn{padding:8px 16px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;min-height:38px;}
+.btn-g{background:var(--gold);color:#000;}.btn-gr{background:var(--gd);color:var(--green);border:1px solid var(--green);}.btn-r{background:var(--rd);color:var(--red);border:1px solid transparent;}
+.btn-sm{font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;border:none;background:var(--rd);color:var(--red);}
+.countdown{text-align:center;padding:10px;background:linear-gradient(135deg,rgba(254,201,37,0.08),rgba(59,130,246,0.08));border-radius:10px;border:1px solid var(--border);margin-bottom:10px;}
+.countdown .big{font-size:32px;font-weight:800;color:var(--gold);}
+.countdown .sub{font-size:10px;color:var(--sub);}
+.warn{background:var(--yd);border-radius:6px;padding:8px;font-size:10px;color:var(--gold);margin-top:6px;line-height:1.5;}
+.tip{background:var(--gd);border-radius:6px;padding:8px;font-size:10px;color:var(--green);margin-top:6px;line-height:1.5;}
+table{width:100%;border-collapse:collapse;font-size:10px;}
+th{text-align:left;padding:4px 6px;font-size:8px;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);}
+td{padding:5px 6px;border-bottom:1px solid rgba(42,53,80,0.2);}
+.goal-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;}
+.goal-card .top{display:flex;justify-content:space-between;align-items:center;}
+.goal-card .name{font-weight:700;font-size:12px;}
+.goal-card .deadline{font-size:9px;color:var(--muted);}
+.goal-card .amounts{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;}
+.edit-icon{cursor:pointer;font-size:10px;color:var(--muted);padding:2px 4px;}
+.edit-icon:hover{color:var(--gold);}
+@media(max-width:768px){.g3,.g4,.g5{grid-template-columns:repeat(2,1fr);}.fr{flex-direction:column;}.ff{width:100%!important;flex:none!important;}}
+@media(max-width:400px){.g2{grid-template-columns:1fr;}}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="mx">
+
+<h1>Finance <span>Planner</span></h1>
+<p class="sh">$6,120/month | All goals by Dec 2026 | Job ends Dec 2026</p>
+
+<!-- Countdown -->
+<div class="countdown">
+  <div class="big" id="countdown">9</div>
+  <div class="sub">months remaining | Deadline: December 2026</div>
+</div>
+
+<!-- ══ GOALS OVERVIEW ══ -->
+<div id="goalsOverview"></div>
+
+<!-- ══ TABS ══ -->
+<div class="tabs">
+  <button class="tab active" onclick="showTab('tracker',this)">Monthly Tracker</button>
+  <button class="tab" onclick="showTab('goals',this)">Goals</button>
+  <button class="tab" onclick="showTab('plan',this)">The Plan</button>
+  <button class="tab" onclick="showTab('settings',this)">Settings</button>
+</div>
+
+<!-- ══ MONTHLY TRACKER ══ -->
+<div class="pane active" id="tracker">
+  <!-- Month nav -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <button class="tab" onclick="chgMonth(-1)">&larr;</button>
+    <span style="font-size:14px;font-weight:700;" id="mLabel">April 2026</span>
+    <button class="tab" onclick="chgMonth(1)">&rarr;</button>
+  </div>
+
+  <!-- Log income -->
+  <div class="card" style="margin-bottom:6px;border-color:rgba(0,200,5,0.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="lbl" style="margin:0;">Income</div>
+      <span class="pos" style="font-weight:700;" id="mIncTotal">$0</span>
+    </div>
+    <div id="mIncList" style="margin-top:4px;"></div>
+    <div class="fr" style="margin-top:6px;">
+      <div class="ff" style="flex:0.5;"><label>Date</label><input type="date" id="iDate" /></div>
+      <div class="ff" style="flex:0.4;"><label>Amount</label><input type="number" id="iAmt" placeholder="3020" /></div>
+      <div class="ff" style="flex:0.6;"><label>Source</label>
+        <select id="iSrc"><option value="salary_15">Salary 15th</option><option value="salary_30">Salary 30th</option><option value="bonus">Bonus</option><option value="other">Other</option></select>
+      </div>
+      <div class="ff"><label>&nbsp;</label><button class="btn btn-gr" onclick="addInc()" style="width:100%;">+</button></div>
+    </div>
+  </div>
+
+  <!-- Log expense -->
+  <div class="card" style="margin-bottom:6px;border-color:rgba(255,80,0,0.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="lbl" style="margin:0;">Expenses</div>
+      <span class="neg" style="font-weight:700;" id="mExpTotal">$0</span>
+    </div>
+    <div class="fr" style="margin-top:6px;">
+      <div class="ff" style="flex:0.5;"><label>Date</label><input type="date" id="eDate" /></div>
+      <div class="ff" style="flex:0.4;"><label>Amount</label><input type="number" id="eAmt" placeholder="45" step="0.01" /></div>
+      <div class="ff" style="flex:0.6;"><label>Category</label>
+        <select id="eCat">
+          <option value="rent">Rent</option><option value="utility">Utilities</option><option value="wifi">Wifi</option>
+          <option value="grocery">Grocery</option><option value="food_out">Outside Food</option>
+          <option value="gas">Gas/Transport</option><option value="personal">Personal</option>
+          <option value="additional">Additional</option>
+          <option value="edu_loan">Education Loan</option><option value="marriage">Marriage Fund</option>
+          <option value="savings">Savings (₹10L goal)</option>
+          <option value="trips">Trips Fund</option><option value="shopping">Shopping Fund</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="ff" style="flex:1;"><label>What</label><input type="text" id="eWhat" placeholder="HEB groceries, rent check, Wise transfer..." /></div>
+      <div class="ff"><label>&nbsp;</label><button class="btn btn-r" onclick="addExp()" style="width:100%;">+ Expense</button></div>
+    </div>
+  </div>
+
+  <!-- Month summary -->
+  <div class="grid g4" id="mSummary"></div>
+
+  <!-- Budget vs Actual -->
+  <div class="card" style="margin-bottom:6px;">
+    <div class="lbl">Budget vs Actual</div>
+    <div id="mBudgetVsActual"></div>
+  </div>
+
+  <!-- Goal contributions this month -->
+  <div class="card" style="margin-bottom:6px;">
+    <div class="lbl">Goal Contributions This Month</div>
+    <div id="mGoalContrib"></div>
+  </div>
+
+  <!-- Transactions -->
+  <div class="card" style="padding:0;max-height:300px;overflow-y:auto;">
+    <table>
+      <thead><tr><th>Date</th><th>Type</th><th>Cat</th><th>What</th><th>Amt</th><th></th></tr></thead>
+      <tbody id="mTxnBody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px;">No transactions yet.</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Past months -->
+  <div class="card" style="margin-top:6px;">
+    <div class="lbl">Month History</div>
+    <div id="mHistory"></div>
+  </div>
+</div>
+
+<!-- ══ GOALS ══ -->
+<div class="pane" id="goals">
+  <div class="sec-t">Your Goals <span class="badge by" id="totalGoalAmt"></span></div>
+  <div id="goalCards"></div>
+
+  <!-- Add/Edit goal -->
+  <div class="card" style="margin-top:8px;border-color:var(--gold);">
+    <div class="lbl" style="color:var(--gold);">Add / Edit Goal</div>
+    <div class="fr" style="margin-top:6px;">
+      <div class="ff" style="flex:1;"><label>Name</label><input type="text" id="gName" placeholder="Education Loan" /></div>
+      <div class="ff" style="flex:0.6;"><label>Target (USD)</label><input type="number" id="gTarget" placeholder="15294" /></div>
+    </div>
+    <div class="fr">
+      <div class="ff" style="flex:0.6;"><label>Target (₹ lakhs)</label><input type="number" id="gTargetInr" placeholder="13" step="0.1" oninput="document.getElementById('gTarget').value=Math.round(this.value*100000/85)" /></div>
+      <div class="ff" style="flex:0.6;"><label>Deadline</label><input type="month" id="gDeadline" value="2026-12" /></div>
+      <div class="ff" style="flex:0.5;"><label>Category Key</label><input type="text" id="gKey" placeholder="edu_loan" /></div>
+      <div class="ff"><label>&nbsp;</label><button class="btn btn-g" onclick="addGoal()">Save Goal</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ THE PLAN ══ -->
+<div class="pane" id="plan">
+  <div class="sec-t">The Plan — 9 Months to December 2026</div>
+
+  <div class="card">
+    <div class="lbl">Monthly Budget</div>
+    <div class="row"><span class="n">Income (15th + 30th)</span><span class="v pos">$3,020 + $3,100 = $6,120</span></div>
+    <div style="margin-top:4px;font-size:10px;font-weight:600;color:var(--muted);">FIXED EXPENSES</div>
+    <div class="row"><span class="n">Rent</span><span class="v neg">$945</span></div>
+    <div class="row"><span class="n">Utilities</span><span class="v neg">$100</span></div>
+    <div class="row"><span class="n">Wifi</span><span class="v neg">$30</span></div>
+    <div class="row"><span class="n">Grocery</span><span class="v neg">$400</span></div>
+    <div class="row"><span class="n">Additional</span><span class="v neg">$100</span></div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11px;font-weight:700;border-top:1px solid var(--border);margin-top:4px;">
+      <span>Total Fixed</span><span class="neg">$1,575</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;font-weight:800;border-top:1px solid var(--gold);margin-top:4px;">
+      <span>Available for Goals</span><span class="gld">$4,545/month</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:8px;">
+    <div class="lbl">Goal Allocation — $4,545/month over 9 months</div>
+    <div id="planAllocation"></div>
+    <div id="planStatus" style="margin-top:6px;"></div>
+  </div>
+
+  <div class="card" style="margin-top:8px;">
+    <div class="lbl">Month-by-Month Timeline</div>
+    <table style="margin-top:4px;">
+      <thead><tr><th>Month</th><th>Income</th><th>Living</th><th>→ Goals</th><th>Cumulative</th></tr></thead>
+      <tbody id="planTimeline"></tbody>
+    </table>
+  </div>
+
+  <div class="warn"><b>Job ends Dec 2026.</b> Every dollar to goals matters. No unplanned spending. Review this plan on the 1st of every month.</div>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div class="pane" id="settings">
+  <div class="sec-t">Settings</div>
+  <div class="card">
+    <div class="lbl">Income</div>
+    <div class="fr">
+      <div class="ff" style="flex:1;"><label>Paycheck 15th</label><input type="number" id="sPay1" onchange="saveSettings()" /></div>
+      <div class="ff" style="flex:1;"><label>Paycheck 30th</label><input type="number" id="sPay2" onchange="saveSettings()" /></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:6px;">
+    <div class="lbl">Monthly Budget</div>
+    <div class="fr">
+      <div class="ff" style="flex:1;"><label>Rent</label><input type="number" id="sRent" onchange="saveSettings()" /></div>
+      <div class="ff" style="flex:1;"><label>Utilities</label><input type="number" id="sUtil" onchange="saveSettings()" /></div>
+      <div class="ff" style="flex:1;"><label>Wifi</label><input type="number" id="sWifi" onchange="saveSettings()" /></div>
+    </div>
+    <div class="fr">
+      <div class="ff" style="flex:1;"><label>Grocery</label><input type="number" id="sGrocery" onchange="saveSettings()" /></div>
+      <div class="ff" style="flex:1;"><label>Additional</label><input type="number" id="sAdditional" onchange="saveSettings()" /></div>
+      <div class="ff" style="flex:1;"><label>INR Rate</label><input type="number" id="sRate" onchange="saveSettings()" /></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:6px;">
+    <div class="lbl">Data</div>
+    <div class="fr">
+      <button class="btn btn-g" onclick="exportData()" style="flex:1;">Export All Data</button>
+      <div class="ff" style="flex:1;"><label>Import</label><input type="file" id="importFile" accept=".json" onchange="importData(event)" style="padding:4px;" /></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ═══ STORAGE ═══
+const S_KEY = 'f2_settings';
+const T_KEY = 'f2_txns';
+const G_KEY = 'f2_goals';
+
+function ls(k) { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } }
+function ss(k,v) { localStorage.setItem(k, JSON.stringify(v)); }
+
+// ═══ DEFAULT SETTINGS ═══
+const DEF_SETTINGS = { pay1:3020, pay2:3100, rent:945, util:100, wifi:30, grocery:400, additional:100, rate:90 };
+
+let settings = ls(S_KEY) || DEF_SETTINGS;
+let txns = ls(T_KEY) || [];
+let goals = ls(G_KEY) || [
+  { id:1, name:'Savings (₹10L)', key:'savings', target:11111, deadline:'2026-12', color:'var(--green)' },
+  { id:2, name:'Education Loan (₹13L)', key:'edu_loan', target:14444, deadline:'2026-12', color:'var(--red)' },
+  { id:3, name:'Marriage Fund (₹5L)', key:'marriage', target:5556, deadline:'2026-11', color:'var(--purple)' },
+  { id:4, name:'Trips Fund', key:'trips', target:8000, deadline:'2026-12', color:'#f97316' },
+  { id:5, name:'Shopping Fund', key:'shopping', target:3000, deadline:'2026-12', color:'var(--cyan)' },
+];
+
+const MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const CAT_NAMES = {
+  rent:'Rent',utility:'Utilities',wifi:'Wifi',grocery:'Grocery',food_out:'Outside Food',
+  gas:'Gas',personal:'Personal',additional:'Additional',edu_loan:'Edu Loan',marriage:'Marriage',
+  savings:'Savings',trips:'Trips',shopping:'Shopping',other:'Other',
+  salary_15:'Salary 15th',salary_30:'Salary 30th',bonus:'Bonus'
+};
+
+let vMonth = new Date().getMonth();
+let vYear = new Date().getFullYear();
+if (vYear < 2026 || (vYear === 2026 && vMonth < 3)) { vMonth = 3; vYear = 2026; }
+
+// Set dates
+document.getElementById('iDate').valueAsDate = new Date();
+document.getElementById('eDate').valueAsDate = new Date();
+
+// Load settings into fields
+function loadSettingsUI() {
+  document.getElementById('sPay1').value = settings.pay1;
+  document.getElementById('sPay2').value = settings.pay2;
+  document.getElementById('sRent').value = settings.rent;
+  document.getElementById('sUtil').value = settings.util;
+  document.getElementById('sWifi').value = settings.wifi;
+  document.getElementById('sGrocery').value = settings.grocery;
+  document.getElementById('sAdditional').value = settings.additional;
+  document.getElementById('sRate').value = settings.rate;
+}
+
+function saveSettings() {
+  settings = {
+    pay1: parseFloat(document.getElementById('sPay1').value)||3020,
+    pay2: parseFloat(document.getElementById('sPay2').value)||3100,
+    rent: parseFloat(document.getElementById('sRent').value)||945,
+    util: parseFloat(document.getElementById('sUtil').value)||100,
+    wifi: parseFloat(document.getElementById('sWifi').value)||30,
+    grocery: parseFloat(document.getElementById('sGrocery').value)||400,
+    additional: parseFloat(document.getElementById('sAdditional').value)||100,
+    rate: parseFloat(document.getElementById('sRate').value)||85,
+  };
+  ss(S_KEY, settings);
+  renderAll();
+}
+
+function getIncome() { return settings.pay1 + settings.pay2; }
+function getLiving() { return settings.rent + settings.util + settings.wifi + settings.grocery + settings.additional; }
+function getFree() { return getIncome() - getLiving(); }
+
+// ═══ TRANSACTIONS ═══
+function addInc() {
+  const d = document.getElementById('iDate').value;
+  const a = parseFloat(document.getElementById('iAmt').value);
+  const s = document.getElementById('iSrc').value;
+  if (!d||isNaN(a)||a<=0) { alert('Enter date and amount.'); return; }
+  txns.push({ id:Date.now(), date:d, type:'income', cat:s, what:CAT_NAMES[s]||s, amt:Math.round(a*100)/100 });
+  txns.sort((a,b) => a.date.localeCompare(b.date));
+  ss(T_KEY, txns);
+  document.getElementById('iAmt').value = '';
+  renderAll();
+}
+
+function addExp() {
+  const d = document.getElementById('eDate').value;
+  const a = parseFloat(document.getElementById('eAmt').value);
+  const c = document.getElementById('eCat').value;
+  const w = document.getElementById('eWhat').value.trim();
+  if (!d||isNaN(a)||a<=0) { alert('Enter date and amount.'); return; }
+  txns.push({ id:Date.now(), date:d, type:'expense', cat:c, what:w||CAT_NAMES[c]||c, amt:Math.round(a*100)/100 });
+  txns.sort((a,b) => a.date.localeCompare(b.date));
+  ss(T_KEY, txns);
+  document.getElementById('eAmt').value = '';
+  document.getElementById('eWhat').value = '';
+  renderAll();
+}
+
+function delTxn(id) { if (!confirm('Delete?')) return; txns = txns.filter(t=>t.id!==id); ss(T_KEY,txns); renderAll(); }
+
+// ═══ GOALS ═══
+function addGoal() {
+  const name = document.getElementById('gName').value.trim();
+  const target = parseFloat(document.getElementById('gTarget').value);
+  const deadline = document.getElementById('gDeadline').value;
+  const key = document.getElementById('gKey').value.trim() || name.toLowerCase().replace(/[^a-z0-9]/g,'_');
+  if (!name||isNaN(target)) { alert('Enter name and target.'); return; }
+  const existing = goals.find(g => g.key === key);
+  if (existing) { existing.name = name; existing.target = target; existing.deadline = deadline; }
+  else { goals.push({ id:Date.now(), name, key, target, deadline, color:'var(--gold)' }); }
+  ss(G_KEY, goals);
+  document.getElementById('gName').value = '';
+  document.getElementById('gTarget').value = '';
+  document.getElementById('gTargetInr').value = '';
+  document.getElementById('gKey').value = '';
+  renderAll();
+}
+
+function delGoal(id) { if (!confirm('Delete goal?')) return; goals = goals.filter(g=>g.id!==id); ss(G_KEY,goals); renderAll(); }
+
+// ═══ RENDER ═══
+function renderAll() {
+  renderCountdown();
+  renderGoalsOverview();
+  renderMonthly();
+  renderGoalCards();
+  renderPlan();
+}
+
+function renderCountdown() {
+  const end = new Date(2026, 11, 31);
+  const now = new Date();
+  const ml = Math.max(0, Math.ceil((end - now) / (30.44*24*60*60*1000)));
+  document.getElementById('countdown').textContent = ml;
+}
+
+function renderGoalsOverview() {
+  const el = document.getElementById('goalsOverview');
+  const goalKeys = goals.map(g => g.key);
+  const goalTxns = txns.filter(t => t.type === 'expense' && goalKeys.includes(t.cat));
+
+  el.innerHTML = `<div class="grid g${Math.min(goals.length, 5)}">` + goals.map(g => {
+    const paid = goalTxns.filter(t => t.cat === g.key).reduce((s,t) => s+t.amt, 0);
+    const pct = Math.min(100, paid / g.target * 100);
+    const left = Math.max(0, g.target - paid);
+    const color = g.color || 'var(--gold)';
+    const done = pct >= 100;
+    return `<div class="card c" style="padding:8px;${done?'border-color:var(--green);':''}">
+      <div style="font-size:8px;color:var(--muted);text-transform:uppercase;">${g.name}</div>
+      <div style="font-size:15px;font-weight:700;color:${done?'var(--green)':color};">${done?'DONE!':'$'+Math.round(paid).toLocaleString()}</div>
+      <div class="prg"><div class="prg-f" style="width:${pct}%;background:${color};"></div></div>
+      <div style="font-size:8px;color:var(--muted);margin-top:2px;">$${Math.round(left).toLocaleString()} left · ${g.deadline}</div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function chgMonth(d) {
+  vMonth += d;
+  if (vMonth > 11) { vMonth = 0; vYear++; }
+  if (vMonth < 0) { vMonth = 11; vYear--; }
+  renderMonthly();
+}
+
+function renderMonthly() {
+  const ms = `${vYear}-${String(vMonth+1).padStart(2,'0')}`;
+  document.getElementById('mLabel').textContent = `${MN[vMonth]} ${vYear}`;
+
+  const mt = txns.filter(t => t.date.startsWith(ms));
+  const inc = mt.filter(t => t.type === 'income');
+  const exp = mt.filter(t => t.type === 'expense');
+  const totalI = inc.reduce((s,t) => s+t.amt, 0);
+  const totalE = exp.reduce((s,t) => s+t.amt, 0);
+
+  const goalKeys = goals.map(g => g.key);
+  const toGoals = exp.filter(t => goalKeys.includes(t.cat)).reduce((s,t) => s+t.amt, 0);
+  const living = totalE - toGoals;
+  const remaining = totalI - totalE;
+
+  document.getElementById('mIncTotal').textContent = '$' + totalI.toLocaleString();
+  document.getElementById('mExpTotal').textContent = '-$' + totalE.toLocaleString();
+
+  // Income list
+  const il = document.getElementById('mIncList');
+  il.innerHTML = inc.length === 0
+    ? `<div style="font-size:9px;color:var(--muted);">Expected: $${settings.pay1} (15th) + $${settings.pay2} (30th) = $${getIncome()}</div>`
+    : inc.map(t => `<div class="row"><span class="n">${t.what} · ${t.date.slice(8)}</span><span class="v pos">+$${t.amt.toLocaleString()}</span></div>`).join('');
+
+  // Summary cards
+  document.getElementById('mSummary').innerHTML = `
+    <div class="card c"><div class="lbl">Income</div><div class="val pos" style="font-size:14px;">$${totalI.toLocaleString()}</div><div class="sm">of $${getIncome()}</div></div>
+    <div class="card c"><div class="lbl">Living</div><div class="val ${living>getLiving()?'neg':''}" style="font-size:14px;">$${Math.round(living).toLocaleString()}</div><div class="sm">budget $${getLiving()}</div></div>
+    <div class="card c"><div class="lbl">→ Goals</div><div class="val gld" style="font-size:14px;">$${Math.round(toGoals).toLocaleString()}</div><div class="sm">of $${getFree()}</div></div>
+    <div class="card c"><div class="lbl">Left</div><div class="val ${remaining>=0?'pos':'neg'}" style="font-size:14px;">$${Math.round(remaining).toLocaleString()}</div></div>
+  `;
+
+  // Budget vs actual
+  const byCat = {};
+  exp.forEach(t => { byCat[t.cat] = (byCat[t.cat]||0) + t.amt; });
+  const budgetCats = [
+    {k:'rent',b:settings.rent},{k:'utility',b:settings.util},{k:'wifi',b:settings.wifi},
+    {k:'grocery',b:settings.grocery},{k:'food_out',b:0},{k:'additional',b:settings.additional},
+    {k:'gas',b:0},{k:'personal',b:0},{k:'other',b:0},
+  ];
+
+  document.getElementById('mBudgetVsActual').innerHTML = budgetCats.map(c => {
+    const actual = byCat[c.k] || 0;
+    if (actual === 0 && c.b === 0) return '';
+    const pct = c.b > 0 ? Math.min(100, actual/c.b*100) : 100;
+    const over = actual > c.b && c.b > 0;
+    const color = over ? 'var(--red)' : pct > 80 ? 'var(--gold)' : 'var(--green)';
+    return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:10px;">
+      <span style="width:70px;color:var(--sub);">${CAT_NAMES[c.k]||c.k}</span>
+      <div style="flex:1;height:4px;background:var(--input);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px;"></div></div>
+      <span style="width:40px;text-align:right;font-weight:600;color:${color};">$${actual.toFixed(0)}</span>
+      <span style="width:35px;text-align:right;color:var(--muted);">/${c.b||'—'}</span>
+    </div>`;
+  }).join('');
+
+  // Goal contributions
+  document.getElementById('mGoalContrib').innerHTML = goals.map(g => {
+    const paid = byCat[g.key] || 0;
+    const monthsLeft = Math.max(1, monthDiff(ms, g.deadline));
+    const totalPaid = txns.filter(t => t.type==='expense'&&t.cat===g.key).reduce((s,t)=>s+t.amt,0);
+    const remaining = Math.max(0, g.target - totalPaid);
+    const monthlyNeeded = Math.round(remaining / monthsLeft);
+    const onTrack = paid >= monthlyNeeded;
+    return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(42,53,80,0.12);font-size:10px;">
+      <span style="width:90px;font-weight:600;">${g.name}</span>
+      <div style="flex:1;height:5px;background:var(--input);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${monthlyNeeded>0?Math.min(100,paid/monthlyNeeded*100):0}%;background:${g.color||'var(--gold)'};border-radius:3px;"></div></div>
+      <span style="width:45px;text-align:right;font-weight:600;">$${paid.toFixed(0)}</span>
+      <span style="width:50px;text-align:right;color:var(--muted);">need $${monthlyNeeded}</span>
+      <span class="badge ${onTrack?'bg':'br'}" style="width:35px;text-align:center;">${onTrack?'OK':'Low'}</span>
+    </div>`;
+  }).join('');
+
+  // Transactions
+  const sorted = [...mt].sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id);
+  const body = document.getElementById('mTxnBody');
+  body.innerHTML = sorted.length === 0
+    ? '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px;">No transactions.</td></tr>'
+    : sorted.map(t => `<tr>
+      <td style="color:var(--sub);">${t.date.slice(5)}</td>
+      <td><span class="badge ${t.type==='income'?'bg':'br'}">${t.type==='income'?'IN':'OUT'}</span></td>
+      <td style="font-size:9px;">${CAT_NAMES[t.cat]||t.cat}</td>
+      <td style="color:var(--sub);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.what}</td>
+      <td style="font-weight:700;" class="${t.type==='income'?'pos':'neg'}">${t.type==='income'?'+':'-'}$${t.amt.toLocaleString()}</td>
+      <td><button class="btn-sm" onclick="delTxn(${t.id})">x</button></td>
+    </tr>`).join('');
+
+  // Past months
+  const allM = {};
+  txns.forEach(t => {
+    const m = t.date.slice(0,7);
+    if (!allM[m]) allM[m] = {inc:0,exp:0,goals:0};
+    if (t.type==='income') allM[m].inc += t.amt;
+    else { allM[m].exp += t.amt; if (goalKeys.includes(t.cat)) allM[m].goals += t.amt; }
+  });
+  const sm = Object.entries(allM).sort((a,b) => b[0].localeCompare(a[0]));
+  document.getElementById('mHistory').innerHTML = sm.length <= 1
+    ? '<div style="font-size:10px;color:var(--muted);">History appears after first full month.</div>'
+    : sm.map(([m,d]) => `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid rgba(42,53,80,0.12);font-size:10px;">
+      <span style="width:55px;font-weight:600;">${m}</span>
+      <span class="pos" style="width:50px;">+$${d.inc.toLocaleString()}</span>
+      <span class="neg" style="width:50px;">-$${(d.exp-d.goals).toLocaleString()}</span>
+      <span class="gld" style="width:50px;">→$${d.goals.toLocaleString()}</span>
+      <div style="flex:1;height:3px;background:var(--input);border-radius:2px;"><div style="height:100%;width:${d.inc>0?Math.min(100,d.goals/d.inc*100):0}%;background:var(--gold);border-radius:2px;"></div></div>
+    </div>`).join('');
+}
+
+function renderGoalCards() {
+  const el = document.getElementById('goalCards');
+  const goalKeys = goals.map(g => g.key);
+
+  el.innerHTML = goals.map(g => {
+    const paid = txns.filter(t => t.type==='expense'&&t.cat===g.key).reduce((s,t) => s+t.amt, 0);
+    const pct = Math.min(100, paid / g.target * 100);
+    const left = Math.max(0, g.target - paid);
+    const inr = Math.round(left * settings.rate);
+    const monthsLeft = Math.max(1, monthDiff(new Date().toISOString().slice(0,7), g.deadline));
+    const monthly = Math.round(left / monthsLeft);
+
+    return `<div class="goal-card">
+      <div class="top">
+        <span class="name" style="color:${g.color||'var(--gold)'};">${g.name}</span>
+        <div>
+          <span class="deadline">by ${g.deadline}</span>
+          <span class="edit-icon" onclick="delGoal(${g.id})">x</span>
+        </div>
+      </div>
+      <div class="prg" style="height:10px;margin:6px 0;">
+        <div class="prg-f" style="width:${pct}%;background:${g.color||'var(--gold)'};"></div>
+      </div>
+      <div class="amounts">
+        <span>Paid: <b class="pos">$${Math.round(paid).toLocaleString()}</b></span>
+        <span>Left: <b>$${Math.round(left).toLocaleString()}</b> (₹${(inr/100000).toFixed(1)}L)</span>
+        <span>Need: <b class="gld">$${monthly}/mo</b></span>
+        <span><b>${pct.toFixed(0)}%</b></span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const totalTarget = goals.reduce((s,g) => s+g.target, 0);
+  const totalPaid = goals.reduce((s,g) => s + txns.filter(t => t.type==='expense'&&t.cat===g.key).reduce((ss,t)=>ss+t.amt,0), 0);
+  document.getElementById('totalGoalAmt').textContent = `$${Math.round(totalPaid).toLocaleString()} / $${Math.round(totalTarget).toLocaleString()}`;
+}
+
+function renderPlan() {
+  const free = getFree();
+  const totalTarget = goals.reduce((s,g) => s+g.target, 0);
+  const monthsAvail = 9;
+
+  // Plan allocation
+  const el = document.getElementById('planAllocation');
+  let totalMonthly = 0;
+  el.innerHTML = goals.map(g => {
+    const ml = Math.max(1, monthDiff('2026-04', g.deadline));
+    const monthly = Math.round(g.target / ml);
+    totalMonthly += monthly;
+    const pct = (monthly / free * 100).toFixed(0);
+    return `<div class="row"><span class="n">${g.name} (${ml} months)</span><span class="v" style="color:${g.color||'var(--gold)'};">$${monthly}/mo (${pct}%)</span></div>`;
+  }).join('');
+
+  const gap = totalMonthly - free;
+  document.getElementById('planStatus').innerHTML = gap > 0
+    ? `<div class="warn"><b>Short by $${gap}/month.</b> Options: cut grocery $50, reduce trips, or extend a deadline.</div>`
+    : `<div class="tip"><b>Fits!</b> $${Math.abs(gap)} buffer per month. Stay disciplined.</div>`;
+
+  // Timeline
+  const body = document.getElementById('planTimeline');
+  let cumulative = 0;
+  body.innerHTML = Array.from({length:monthsAvail}, (_,i) => {
+    const d = new Date(2026, 3 + i);
+    const label = d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+    const toGoals = Math.min(free, totalMonthly);
+    cumulative += toGoals;
+    const pctDone = (cumulative / totalTarget * 100).toFixed(0);
+    return `<tr>
+      <td style="font-weight:600;">${label}</td>
+      <td class="pos">$${getIncome().toLocaleString()}</td>
+      <td class="neg">$${getLiving().toLocaleString()}</td>
+      <td class="gld" style="font-weight:700;">$${toGoals.toLocaleString()}</td>
+      <td>$${cumulative.toLocaleString()} <span style="color:var(--muted);font-size:9px;">(${pctDone}%)</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══ HELPERS ═══
+function monthDiff(from, to) {
+  const [fy,fm] = from.split('-').map(Number);
+  const [ty,tm] = to.split('-').map(Number);
+  return (ty - fy) * 12 + (tm - fm);
+}
+
+function showTab(id,btn) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function exportData() {
+  const data = { settings, txns, goals, exported: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'finance2_backup_' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.settings) { settings = data.settings; ss(S_KEY, settings); }
+      if (data.txns) { txns = data.txns; ss(T_KEY, txns); }
+      if (data.goals) { goals = data.goals; ss(G_KEY, goals); }
+      loadSettingsUI();
+      renderAll();
+      alert('Imported successfully!');
+    } catch(err) { alert('Invalid file.'); }
+  };
+  reader.readAsText(file);
+}
+
+loadSettingsUI();
+renderAll();
+</script>
+</body>
+</html>
