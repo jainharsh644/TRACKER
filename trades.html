@@ -94,6 +94,71 @@ tr:hover td{background:rgba(255,255,255,0.01);}
 /* Quote */
 .quote{background:var(--card);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;font-size:11px;color:var(--sub);font-style:italic;}
 .quote b{color:var(--gold);font-style:normal;}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:768px){
+  .mx{padding:8px;}
+  h1{font-size:18px;margin-bottom:2px;}
+  .subtitle{font-size:10px;margin-bottom:12px;}
+  .quote{padding:8px 10px;font-size:10px;margin-bottom:10px;}
+
+  /* Grids: 2-col */
+  .g3,.g4,.g5{grid-template-columns:repeat(2,1fr);}
+  .grid{gap:6px;margin-bottom:10px;}
+
+  /* Cards smaller */
+  .card{padding:10px;border-radius:8px;}
+  .card .val{font-size:16px;}
+  .card .lbl{font-size:8px;}
+  .card .sm{font-size:9px;}
+
+  /* Recovery bar */
+  .recovery-bar{margin-bottom:10px;}
+  .rb-header .title{font-size:11px;}
+  .rb-header .amt{font-size:14px;}
+  .rb-track{height:18px;}
+
+  /* Forms: stack fields */
+  .form-card{padding:10px;margin-bottom:10px;border-radius:8px;}
+  .form-title{font-size:12px;margin-bottom:8px;}
+  .form-row{flex-direction:column;gap:6px;margin-bottom:6px;}
+  .form-field{width:100%!important;flex:none!important;}
+  .form-field input,.form-field select{font-size:14px;padding:9px 10px;}
+  .btn{font-size:13px;padding:10px;width:100%;min-height:42px;}
+
+  /* Tabs scroll */
+  .tabs{overflow-x:auto;flex-wrap:nowrap;gap:6px;margin-bottom:8px;-webkit-overflow-scrolling:touch;}
+  .tab{white-space:nowrap;flex-shrink:0;padding:7px 14px;font-size:11px;}
+
+  /* Table readable */
+  table{font-size:10px;}
+  th{padding:4px 5px;font-size:8px;}
+  td{padding:5px 5px;}
+
+  /* Streak dots smaller */
+  .streak-dot{width:16px;height:16px;font-size:7px;}
+  .streak-bar{gap:2px;}
+
+  /* Rule checks bigger for touch */
+  .rule-check{width:24px;height:24px;font-size:14px;}
+  .rule{padding:8px 0;font-size:12px;}
+
+  /* Calendar cells */
+  .cal-cell{font-size:9px;}
+  .cal-grid{gap:2px;}
+
+  /* Earning section */
+  #earningStats .val{font-size:14px!important;}
+
+  /* Section titles */
+  .sec-t{font-size:11px;}
+}
+
+@media(max-width:400px){
+  .g2,.g3,.g4,.g5{grid-template-columns:1fr 1fr;}
+  h1{font-size:16px;}
+  .rb-header{flex-direction:column;gap:2px;}
+}
 </style>
 </head>
 <body>
@@ -152,87 +217,63 @@ tr:hover td{background:rgba(255,255,255,0.01);}
   </div>
 </div>
 
+<!-- ══ LOG TRADE (TOP — no scrolling) ══ -->
+<div class="form-card">
+  <div class="form-title"><span>Log Trade</span></div>
+  <div class="form-row">
+    <div class="form-field" style="flex:1;"><label>Ticker</label><input type="text" id="tradeTicker" placeholder="NVDA, SPY..." style="text-transform:uppercase;font-size:16px;" /></div>
+    <div class="form-field" style="flex:1;"><label>Type</label>
+      <select id="tradeType"><option value="call">Call</option><option value="put">Put</option><option value="stock">Stock</option></select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-field" style="flex:1;"><label>Entry $</label><input type="number" id="tradeEntry" placeholder="500" step="0.01" /></div>
+    <div class="form-field" style="flex:1;"><label>Exit $</label><input type="number" id="tradeExit" placeholder="650" step="0.01" /></div>
+    <div class="form-field" style="flex:1;"><label>Date</label><input type="date" id="tradeDate" /></div>
+  </div>
+  <div class="form-row">
+    <div class="form-field" style="flex:1;"><label>Notes (optional)</label><input type="text" id="tradeNotes" placeholder="Setup, reason..." /></div>
+  </div>
+  <button class="btn btn-gold" onclick="addTrade()" style="width:100%;">+ Add Trade</button>
+</div>
+
 <!-- ══ TOP STATS ══ -->
 <div class="grid g5" id="topStats">
-  <div class="card c"><div class="lbl">Today</div><div class="val" id="todayPnl">—</div><div class="sm" id="todayTrades">No trades yet</div></div>
-  <div class="card c"><div class="lbl">This Week</div><div class="val" id="weekPnl">$0</div><div class="sm" id="weekTrades">0 trades</div></div>
-  <div class="card c"><div class="lbl">This Month</div><div class="val" id="monthPnl">$0</div><div class="sm" id="monthTrades">0 trades</div></div>
-  <div class="card c"><div class="lbl">Total P&L</div><div class="val" id="totalPnl">$0</div><div class="sm" id="totalTrades">0 trades</div></div>
-  <div class="card c"><div class="lbl">Win Rate</div><div class="val gld" id="winRate">—</div><div class="sm" id="winLoss">0W / 0L</div></div>
+  <div class="card c"><div class="lbl">Today</div><div class="val" id="todayPnl">—</div><div class="sm" id="todayTrades">No trades</div></div>
+  <div class="card c"><div class="lbl">Week</div><div class="val" id="weekPnl">$0</div><div class="sm" id="weekTrades">0</div></div>
+  <div class="card c"><div class="lbl">Month</div><div class="val" id="monthPnl">$0</div><div class="sm" id="monthTrades">0</div></div>
+  <div class="card c"><div class="lbl">Total</div><div class="val" id="totalPnl">$0</div><div class="sm" id="totalTrades">0</div></div>
+  <div class="card c"><div class="lbl">Win%</div><div class="val gld" id="winRate">—</div><div class="sm" id="winLoss">0/0</div></div>
 </div>
 
 <!-- ══ KEY METRICS ══ -->
 <div class="grid g4">
-  <div class="card c"><div class="lbl">Avg Win</div><div class="val pos" id="avgWin" style="font-size:16px;">—</div></div>
-  <div class="card c"><div class="lbl">Avg Loss</div><div class="val neg" id="avgLoss" style="font-size:16px;">—</div></div>
-  <div class="card c"><div class="lbl">Best Trade</div><div class="val pos" id="bestTrade" style="font-size:16px;">—</div></div>
-  <div class="card c"><div class="lbl">Worst Trade</div><div class="val neg" id="worstTrade" style="font-size:16px;">—</div></div>
+  <div class="card c"><div class="lbl">Avg Win</div><div class="val pos" id="avgWin" style="font-size:15px;">—</div></div>
+  <div class="card c"><div class="lbl">Avg Loss</div><div class="val neg" id="avgLoss" style="font-size:15px;">—</div></div>
+  <div class="card c"><div class="lbl">Best</div><div class="val pos" id="bestTrade" style="font-size:15px;">—</div></div>
+  <div class="card c"><div class="lbl">Worst</div><div class="val neg" id="worstTrade" style="font-size:15px;">—</div></div>
 </div>
 
 <!-- ══ STREAK + RULES ══ -->
 <div class="grid g2">
   <div class="card">
-    <div class="lbl">Current Streak</div>
-    <div id="streakDisplay" style="margin-top:6px;">
-      <span class="val" id="streakVal" style="font-size:24px;">0</span>
-      <span class="sm" id="streakLabel">No trades yet</span>
+    <div class="lbl">Streak</div>
+    <div id="streakDisplay" style="margin-top:4px;">
+      <span class="val" id="streakVal" style="font-size:22px;">0</span>
+      <span class="sm" id="streakLabel">No trades</span>
     </div>
     <div class="streak-bar" id="streakBar"></div>
-    <div class="sm" style="margin-top:6px;">Last 20 trades</div>
   </div>
   <div class="card">
     <div class="lbl">Pre-Trade Checklist</div>
     <div id="checklist">
-      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">Is it before 11am?</span></div>
-      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">RSI + MACD + Trend all agree?</span></div>
-      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">Volume above average?</span></div>
-      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">Stop loss order set at $400?</span></div>
-      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">Only $500 risked?</span></div>
-      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">This is my ONLY trade today?</span></div>
-      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')"></div><span class="rule-text">I am NOT emotional/revenge trading?</span></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ ADD TRADE FORM ══ -->
-<div class="form-card">
-  <div class="form-title">
-    <span>Log Trade</span>
-    <span style="font-size:10px;color:var(--muted);font-weight:400;" id="ruleWarning"></span>
-  </div>
-  <div class="form-row">
-    <div class="form-field" style="flex:1;">
-      <label>Date</label>
-      <input type="date" id="tradeDate" />
-    </div>
-    <div class="form-field" style="flex:1;">
-      <label>Ticker</label>
-      <input type="text" id="tradeTicker" placeholder="NVDA, SPY..." style="text-transform:uppercase;" />
-    </div>
-    <div class="form-field" style="flex:1;">
-      <label>Type</label>
-      <select id="tradeType">
-        <option value="call">Call</option>
-        <option value="put">Put</option>
-        <option value="stock">Stock</option>
-      </select>
-    </div>
-    <div class="form-field" style="flex:0.8;">
-      <label>Entry $</label>
-      <input type="number" id="tradeEntry" placeholder="500" step="0.01" />
-    </div>
-    <div class="form-field" style="flex:0.8;">
-      <label>Exit $</label>
-      <input type="number" id="tradeExit" placeholder="650" step="0.01" />
-    </div>
-  </div>
-  <div class="form-row">
-    <div class="form-field" style="flex:2;">
-      <label>Notes (optional)</label>
-      <input type="text" id="tradeNotes" placeholder="Setup, reason, what I learned..." />
-    </div>
-    <div class="form-field" style="justify-content:flex-end;">
-      <button class="btn btn-gold" onclick="addTrade()">Add Trade</button>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')">&#10003;</div><span class="rule-text">Before 11am?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')">&#10003;</div><span class="rule-text">RSI+MACD+Trend agree?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')">&#10003;</div><span class="rule-text">Volume above avg?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')">&#10003;</div><span class="rule-text">Stop loss set?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')">&#10003;</div><span class="rule-text">Only $500 risked?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')">&#10003;</div><span class="rule-text">Only 1 trade today?</span></div>
+      <div class="rule"><div class="rule-check" onclick="this.classList.toggle('checked')">&#10003;</div><span class="rule-text">Not emotional?</span></div>
     </div>
   </div>
 </div>
