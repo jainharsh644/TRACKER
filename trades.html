@@ -353,9 +353,13 @@ tr:hover td{background:rgba(255,255,255,0.01);}
 // STATE (persisted to localStorage)
 // ═══════════════════════════════════════
 const STORAGE_KEY = 'rh_trade_journal';
-const RECOVERY_TARGET = 8310;
+const RT_KEY = 'rh_recovery_target';
+const BASE_RECOVERY = 8310;
 const ACCOUNT_BASE = 22058;
 const DEPOSITED = 27224;
+const MAX_TRADES_PER_DAY = 1;
+const DAILY_LOSS_LIMIT = 150;
+const WEEKLY_LOSS_LIMIT = 400;
 
 function loadTrades() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
@@ -364,6 +368,28 @@ function loadTrades() {
 
 function saveTrades(trades) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
+}
+
+// Dynamic recovery target — increases if you lose more
+function getRecoveryTarget() {
+  const saved = parseFloat(localStorage.getItem(RT_KEY));
+  if (saved && saved > BASE_RECOVERY) return saved;
+  return BASE_RECOVERY;
+}
+
+function updateRecoveryTarget() {
+  const totalLosses = trades.filter(t => t.pnl < 0).reduce((s,t) => s + Math.abs(t.pnl), 0);
+  const totalWins = trades.filter(t => t.pnl > 0).reduce((s,t) => s + t.pnl, 0);
+  const netPnl = totalWins - totalLosses;
+  // If net P&L is negative, recovery target = BASE + extra losses
+  if (netPnl < 0) {
+    const newTarget = BASE_RECOVERY + Math.abs(netPnl);
+    localStorage.setItem(RT_KEY, newTarget);
+  }
+  // If net is positive but hasn't reached base, keep base
+  else if (netPnl < BASE_RECOVERY) {
+    localStorage.setItem(RT_KEY, BASE_RECOVERY);
+  }
 }
 
 let trades = loadTrades();
@@ -389,12 +415,38 @@ function addTrade() {
     return;
   }
 
-  const pnl = exit - entry;
+  // ── OVERTRADE CHECK ──
+  const todayTrades = trades.filter(t => t.date === date);
+  if (todayTrades.length >= MAX_TRADES_PER_DAY) {
+    if (!confirm(`OVERTRADE ALERT!\n\nYou already have ${todayTrades.length} trade(s) on ${date}.\nRule: MAX 1 trade per day.\n\nAre you SURE you want to add another?`)) {
+      return;
+    }
+  }
+
+  // ── DAILY LOSS CHECK ──
+  const todayPnl = todayTrades.reduce((s,t) => s+t.pnl, 0);
+  const thisPnl = exit - entry;
+  if (todayPnl + thisPnl < -DAILY_LOSS_LIMIT) {
+    alert(`DAILY LOSS LIMIT HIT!\n\nToday's P&L: $${(todayPnl+thisPnl).toFixed(0)}\nLimit: -$${DAILY_LOSS_LIMIT}\n\nSTOP TRADING TODAY. Walk away.`);
+  }
+
+  // ── WEEKLY LOSS CHECK ──
+  const weekStart = getWeekStart(new Date(date + 'T12:00:00'));
+  const weekTrades = trades.filter(t => t.date >= weekStart);
+  const weekPnl = weekTrades.reduce((s,t) => s+t.pnl, 0);
+  if (weekPnl + thisPnl < -WEEKLY_LOSS_LIMIT) {
+    alert(`WEEKLY LOSS LIMIT HIT!\n\nThis week's P&L: $${(weekPnl+thisPnl).toFixed(0)}\nLimit: -$${WEEKLY_LOSS_LIMIT}\n\nSTOP TRADING THIS WEEK.`);
+  }
+
+  const pnl = thisPnl;
   const pct = ((exit - entry) / entry * 100);
 
   trades.push({ id: Date.now(), date, ticker, type, entry, exit, pnl: Math.round(pnl * 100) / 100, pct: Math.round(pct * 100) / 100, notes });
   trades.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
   saveTrades(trades);
+
+  // Update recovery target if losses increased
+  updateRecoveryTarget();
 
   // Clear form
   document.getElementById('tradeTicker').value = '';
@@ -471,13 +523,21 @@ function renderStats() {
 
 // ── Recovery Bar ──
 function renderRecovery() {
+  updateRecoveryTarget();
+  const RECOVERY_TARGET = getRecoveryTarget();
+
   const totalPnl = sum(trades);
   const recovered = Math.max(0, totalPnl);
   const isRecovered = totalPnl >= RECOVERY_TARGET;
   const pct = Math.min(100, (recovered / RECOVERY_TARGET * 100));
 
-  document.getElementById('recoveredAmt').textContent = `${fmtPnl(recovered)} / $${RECOVERY_TARGET.toLocaleString()}`;
+  document.getElementById('recoveredAmt').textContent = `${fmtPnl(recovered)} / $${Math.round(RECOVERY_TARGET).toLocaleString()}`;
   document.getElementById('recoveredAmt').className = 'amt ' + (isRecovered ? 'pos' : 'gld');
+
+  // Show if target increased
+  if (RECOVERY_TARGET > BASE_RECOVERY) {
+    document.getElementById('recoveredAmt').textContent += ` (was $${BASE_RECOVERY.toLocaleString()})`;
+  }
 
   const fill = document.getElementById('recoveryFill');
   fill.style.width = Math.max(pct, 2) + '%';
@@ -511,6 +571,7 @@ function renderEarning(isRecovered, totalPnl) {
   if (!isRecovered) { section.style.display = 'none'; return; }
   section.style.display = 'block';
 
+  const RECOVERY_TARGET = getRecoveryTarget();
   const DAILY_TARGET = 125;
   const WEEKLY_TARGET = 500;
 
